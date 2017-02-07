@@ -43,8 +43,7 @@ class LogitNormalGibbs_base(object):
 
 	## Main sampling iteration
 	def gibbs(self, burnin=100, sample=100, thin=1, 
-				keepChain=False, ## whether to record all samples
-				verbose=True):
+				keepChain=False):
 		"""Gibbs sampling"""
 		## initialize
 		self.init_gibbs(keepChain)
@@ -52,14 +51,12 @@ class LogitNormalGibbs_base(object):
 		isample = 0
 
 		## burnin period
-		if verbose:
-			logging.info("Burnin period: %s samples..." % burnin)
+		logging.debug("\t\tBurnin period: %s samples..." % burnin)
 
 		for giter in xrange(burnin):
 			self.gibbs_cycle()
 		## sampling
-		if verbose:
-			logging.info("Burnin finished. Gibbs sampling started...")
+		logging.debug("\t\tBurnin finished. Gibbs sampling started...")
 		for giter in xrange(sample*thin):
 			self.gibbs_cycle()
 			if giter % thin == 0:
@@ -70,11 +67,11 @@ class LogitNormalGibbs_base(object):
 					self.update_chain(isample)
 				## print progress for every 10 collected samples
 				isample += 1
-				if verbose and (isample % 50 == 0):
-					logging.info("%s/%s finished.", isample, sample)
-		## finish
-		if verbose:
-			logging.info("Gibbs samples finished: %s samples.", sample)
+				if (isample % 50 == 0):
+					logging.debug("\t\t\t%s/%s finished.", isample, sample)
+		
+		## finished
+		logging.debug("\t\tGibbs samples finished: %s samples.", sample)
 
 
 #######################

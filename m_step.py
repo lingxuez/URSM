@@ -22,12 +22,12 @@ class LogitNormalMLE(object):
 				init_pkappa = None, init_ptau = None, ## 2-by-1, mean and 1/var
 				min_A=1e-6, ## minimal value of A; must be positive
 				min_alpha=1, ## minimum value of alpha
-				MLE_CONV=1e-4, MLE_maxiter=100, MLE_verbose=True
+				MLE_CONV=1e-4, MLE_maxiter=100
 				):
 		(self.K, self.min_A, self.min_alpha) = (K, min_A, min_alpha)
 		(self.MLE_CONV, self.MLE_maxiter) = (MLE_CONV, MLE_maxiter)
 		(self.SCexpr, self.G, self.BKexpr) = (SCexpr, G, BKexpr)
-		(self.hasBK, self.hasSC, self.MLE_verbose) = (hasBK, hasSC, MLE_verbose)
+		(self.hasBK, self.hasSC) = (hasBK, hasSC)
 		## starting values
 		self.A = np.copy(start_A)
 		self.alpha = np.copy(start_alpha)
@@ -89,8 +89,7 @@ class LogitNormalMLE(object):
 			## optimize A
 			self.opt_A()
 			elbo = self.compute_elbo_A()
-			# if self.MLE_verbose:
-			# 	print "A: %.6f, " % (100*elbo),
+			# logging.debug("A: %.6f, ", 100*elbo)
 
 			## update auxiliary u: (L, )
 			self.u = (np.transpose(self.A[:, self.G]) *\
@@ -100,11 +99,9 @@ class LogitNormalMLE(object):
 
 			converged = abs(elbo - old_elbo)
 			niter += 1
-			# if self.MLE_verbose:
-			# 	print "u: %.6f, " % (100*elbo),
+			# logging.debug("u: %.6f, " , 100*elbo)
 
-		if self.MLE_verbose:
-			logging.info("Optimized A and u in %d iterations", niter)
+		logging.debug("\t\tOptimized A and u after %d iterations", niter)
 
 		return niter
 
@@ -134,12 +131,6 @@ class LogitNormalMLE(object):
 			converged = np.linalg.norm(new_Ak - old_Ak)
 			old_Ak = np.copy(new_Ak)
 
-			# print str(k)+"-th col: converged="+str(converged)+ \
-			# 				", obj_new="+str(obj_new)+", stepsize="+str(stepsize)
-
-		# if self.MLE_verbose:
-		# 	print "Optimized A_"+str(k)+" in " + str(niter) + " iterations.",
-
 		return niter
 
 
@@ -159,13 +150,12 @@ class LogitNormalMLE(object):
 			niter += 1
 			converged = np.linalg.norm(self.alpha - old_alpha)
 
-		if self.MLE_verbose:
-			logging.info("Optimized alpha in %s iterations: ", niter)
+		logging.debug("\t\tOptimized alpha in %s iterations: ", niter)
 
-			alpha_info = "alpha = "
-			for k in xrange(self.K):
-				alpha_info += ("%.2f, " % self.alpha[k])
-			logging.debug(alpha_info)
+		alpha_info = "\t\t\talpha = "
+		for k in xrange(self.K):
+			alpha_info += ("%.2f, " % self.alpha[k])
+		logging.debug(alpha_info)
 
 		return niter
 
