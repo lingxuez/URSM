@@ -112,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("-thin", "--gibbs_thinning", type=int, default=1)
     parser.add_argument("-MLE_CONV", "--Mstep_convergence_tol", type=float, default=1e-6)
     parser.add_argument("-EM_CONV", "--EM_convergence_tol", type=float, default=1e-6)
-    parser.add_argument("-M_maxiter", "--Mstep_maxiter", type=int, default=100)
+    parser.add_argument("-MLE_maxiter", "--Mstep_maxiter", type=int, default=100)
     parser.add_argument("-EM_maxiter", "--EM_maxiter", type=int, default=100)
     parser.add_argument("-log", "--logging_file", type=str, default="gem_log.log")
     parser.add_argument("-outdir", "--output_directory", type=str, default="out/")

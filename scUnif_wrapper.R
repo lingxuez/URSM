@@ -37,6 +37,7 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
                   MLE_maxiter=1, EM_maxiter=2,
                   out_dir="out/", ## output directory
+                  output_prefix="out_", ## output prefix
                   log_dir="log/" ## logging directory
                   ) {
   
@@ -67,11 +68,10 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
   ################################
   ## other algorithm parameters
   #################################
-  time_id = format(Sys.time(), "%Y-%m-%d_%H-%M-%S") 
   arguments = c(arguments,
               list(output_directory=out_dir, 
-                   output_prefix=paste0("out_", time_id), 
-                   logging_file=paste0(log_dir, "/", time_id, ".log"),
+                   output_prefix=output_prefix, 
+                   logging_file=paste0(log_dir, "/", output_prefix, ".log"),
                    EM_maxiter=EM_maxiter, Mstep_maxiter=MLE_maxiter,
                    EM_convergence_tol=EM_CONV, Mstep_convergence_tol=MLE_CONV,
                    gibbs_thinning=thin, gibbs_sample_number=sample, burn_in_length=burnin,
