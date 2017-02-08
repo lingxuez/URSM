@@ -6,121 +6,99 @@
 # Sys.setenv(PATH = paste("/usr/local/bin", Sys.getenv("PATH"),sep=":"))
 
 
-## current directory
-script.dir <- dirname(parent.frame(2)$ofile)
-  #"/Users/lingxue/Documents/Thesis/SingleCell/EMtools/PyGibbs/"
-library("rjson")
+# ## current directory
+# script.dir <- dirname(parent.frame(2)$ofile)
+##"/Users/lingxue/Documents/Thesis/SingleCell/scUnif/"
 
+data_to_csv <- function(data, data_dir, file_prefix, varname) {
+  res = list()
+  if (!is.null(data)){
+    filename = paste0(data_dir, "/", file_prefix, "_", varname, ".csv")
+    write.table(data, file=filename, 
+                quote=FALSE, sep=",", row.names=FALSE, col.names=FALSE)
+    res[varname] = filename
+  }
+  return(res)
+}
 
-PyGEM <- function(BKexpr=NULL, ## sample-by-gene
+PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/scUnif.py",
+                  BKexpr=NULL, ## sample-by-gene
                   K=3, 
                   SCexpr=NULL, ## sample-by-gene
-                  G=NULL, ## cell-type info for dropout model
-                  hasBK=TRUE, hasSC=TRUE,
-                  ## initialize parameters
+                  G=NULL, ## cell-type info for single cell
+                  data_dir = "data/", ## directory to hold data files
+                  data_prefix = "", ## prefix added to data files
+                  
+                  ## model parameters
                   init_A=NULL,  min_A=1e-6,
                   init_alpha=NULL, est_alpha=TRUE,
                   init_pkappa=NULL, init_ptau=NULL, ## mean and precision 
                   burnin=20, sample=20, thin=1, ## for Gibbs sampling
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
                   MLE_maxiter=1, EM_maxiter=2,
-                  logdir=NULL, ## directory for logging file
-                  isCleanUp=TRUE ## remove temporary files
+                  out_dir="out/", ## output directory
+                  log_dir="log/" ## logging directory
                   ) {
+  
+  if (!dir.exists(data_dir)) {
+    dir.create(data_dir, recursive=TRUE)
+  }
+  if (!dir.exists(log_dir)) {
+    dir.create(log_dir, recursive=TRUE)
+  }
+  if (!dir.exists(out_dir)) {
+    dir.create(out_dir, recursive=TRUE)
+  }
+  
   #########################
-  ## pass in data
+  ## write expression data to file
+  ## and record file names
   #########################
+  arguments = list()
   
-  ## directory for temporary data
-  tmpdir = paste0(script.dir, "/tmp/")
-  if (!dir.exists(tmpdir)) {
-    dir.create(tmpdir)
+  arguments = c(arguments,
+                data_to_csv(BKexpr, data_dir, data_prefix, "bulk_expr_file"),
+                data_to_csv(SCexpr, data_dir, data_prefix, "single_cell_expr_file"),
+                ## note that cell type in python is 0-indexed
+                data_to_csv(G-1, data_dir, data_prefix, "single_cell_type_file"),
+                data_to_csv(init_A, data_dir, data_prefix, "initial_A_file"),
+                data_to_csv(init_alpha, data_dir, data_prefix, "initial_alpha_file"))
+  
+  ################################
+  ## other algorithm parameters
+  #################################
+  time_id = format(Sys.time(), "%Y-%m-%d_%H-%M-%S") 
+  arguments = c(arguments,
+              list(output_directory=out_dir, 
+                   output_prefix=paste0("out_", time_id), 
+                   logging_file=paste0(log_dir, "/", time_id, ".log"),
+                   EM_maxiter=EM_maxiter, Mstep_maxiter=MLE_maxiter,
+                   EM_convergence_tol=EM_CONV, Mstep_convergence_tol=MLE_CONV,
+                   gibbs_thinning=thin, gibbs_sample_number=sample, burn_in_length=burnin,
+                   number_of_cell_types=K, 
+                   mininimal_A=min_A)
+  )
+  
+  ## several parameters need special handling to have the right format
+  arguments$estimate_alpha = c("False", "True")[est_alpha+1]
+  if (!is.null(init_pkappa)) {
+    arguments$initial_kappa_mean_precision=paste(init_pkappa, collapse = " ")
+  }
+  if (!is.null(init_ptau)) {
+    arguments$initial_tau_mean_precision=paste(init_ptau, collapse = " ")
   }
   
-  ## filename signature
-  filesig <- paste0(format(Sys.time(), "%Y-%m-%d_%H-%M-%S"), "_")
-  tmpfile_prefix = paste0(tmpdir, filesig)
-  
-  ## scalar variables
-  scalar_vars = list(filesig=filesig, tmpdir=tmpdir,
-                 K=K, min_A=min_A, est_alpha=as.numeric(est_alpha),
-                 burnin=burnin, sample=sample, thin=thin,
-                 MLE_CONV=MLE_CONV, EM_CONV=EM_CONV,
-                 MLE_maxiter=MLE_maxiter, EM_maxiter=EM_maxiter,
-                 hasBK=as.numeric(hasBK),
-                 hasSC=as.numeric(hasSC))
-  
-  ## write vectors and matrices variables to csv files for python to read
-  file_lists <- list() ## file names
-  variable_lists <- c("init_A") ## variable names
-  if (hasBK) {
-    variable_lists <- c(variable_lists, c("BKexpr", "init_alpha"))
-  }
-  if (hasSC) {
-    G = G-1 ## from 1-based to 0-based indexing
-    variable_lists <- c(variable_lists, c("SCexpr", "G", "init_pkappa", "init_ptau"))
-  }
-  
-  for (variable in variable_lists) {
-    if (!do.call(is.null, list(as.name(variable)))) { ## if not NULL
-      variable_file <- paste0(tmpfile_prefix, variable, ".csv") 
-      ## write to file
-      write.table(eval(as.name(variable)), variable_file, col.names=FALSE, sep=",", row.names=FALSE)
-      ## record file name
-      file_lists[[paste0(variable, "_file")]] <- variable_file 
-    }
-  }
-  
-  ## record scalar_vars and file_lists in JSON file
-  json = toJSON(c(scalar_vars, file_lists))
-  file_lists$setting_file = paste0(tmpfile_prefix, "setting.txt")
-  write.table(json, file_lists$setting_file, 
-              sep="\n", row.names=FALSE, col.names=FALSE, 
-              quote=FALSE)
   
   #########################
   ## run python
   #########################
-  ## directory for logging files
-  if (is.null(logdir)) {
-    logdir = tmpdir
+  ## command line args
+  cmdargs = ""
+  for (i in 1:length(arguments)) {
+    cmdargs = paste0(cmdargs, " --", names(arguments)[i], " ", arguments[i])
   }
   
-  runlog <- system(paste0("python ", script.dir, "/LogitNormalGEM.py ", file_lists$setting_file, " ", logdir), 
-                   intern=TRUE)
-  
-  #########################
-  ## read-in results
-  #########################
-  ## get results, and also record initial values
-  results <- c(list(runlog=runlog, init_pkappa=init_pkappa, init_ptau=init_ptau,
-                    init_alpha=init_alpha),
-               scalar_vars)
-  
-  result_variables <- c("est_A", "path_elbo")
-  if (hasSC) {
-    result_variables <- c(result_variables, "exp_S", "est_pkappa", "est_ptau")
-  }
-  if (hasBK) {
-    result_variables <- c(result_variables, "exp_W", "est_alpha")
-  }
-  
-  for (variable in result_variables) {
-    results[[variable]] <- as.matrix(read.csv(paste0(tmpfile_prefix, variable, ".csv"),
-                                              header=FALSE, sep=",", stringsAsFactors=FALSE))
-  }
-
-  #########################
-  ## clean up temporary files
-  #########################
-  if (isCleanUp) {
-    for (file in file_lists) {
-      system(paste0("rm ", file))
-    }
-    for (variable in result_variables) {
-      system(paste0("rm ", tmpfile_prefix, variable, ".csv"))
-    }
-  }
-
-  return(results)
+  ## run
+  arguments$R_runlog <- system(paste0("python ", py_script, cmdargs), intern=TRUE)
+  return (arguments)
 }

@@ -116,6 +116,7 @@ if __name__ == "__main__":
     parser.add_argument("-EM_maxiter", "--EM_maxiter", type=int, default=100)
     parser.add_argument("-log", "--logging_file", type=str, default="gem_log.log")
     parser.add_argument("-outdir", "--output_directory", type=str, default="out/")
+    parser.add_argument("-outname", "--output_prefix", type=str, default="gemout_")
     parser.add_argument("-verbose", "--verbose_level", type=int, default=1)
     args = parser.parse_args()
 
@@ -211,7 +212,7 @@ if __name__ == "__main__":
     # save results
     if not os.path.exists(args.output_directory):
       os.makedirs(args.output_directory)
-    gem2csv(args.output_directory, myGEM, prefix="out_")
+    gem2csv(args.output_directory, myGEM, prefix=args.output_prefix)
     logging.info("Results are under directory %s." % args.output_directory)
 
     logging.info("Logging info is written to %s." , args.logging_file)
