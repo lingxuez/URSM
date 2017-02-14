@@ -117,7 +117,7 @@ if __name__ == "__main__":
     parser.add_argument("-log", "--logging_file", type=str, default="gem_log.log")
     parser.add_argument("-outdir", "--output_directory", type=str, default="out/")
     parser.add_argument("-outname", "--output_prefix", type=str, default="gemout_")
-    parser.add_argument("-verbose", "--verbose_level", type=int, default=1)
+    parser.add_argument("-verbose", "--verbose_level", type=int, default=2)
     args = parser.parse_args()
 
     ## verbose level

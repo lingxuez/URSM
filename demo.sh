@@ -14,4 +14,4 @@ python -m cProfile -o demo_profile.txt scUnif.py \
 	-verbose 2 \
 	-burnin 10 \
 	-sample 20 \
-	-EM_maxiter 5 \
+	-EM_maxiter 5
