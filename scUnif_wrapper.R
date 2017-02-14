@@ -36,6 +36,7 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   burnin=20, sample=20, thin=1, ## for Gibbs sampling
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
                   MLE_maxiter=1, EM_maxiter=2,
+                  verbose=1,
                   out_dir="out/", ## output directory
                   output_prefix="out_", ## output prefix
                   log_dir="log/" ## logging directory
@@ -76,7 +77,8 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                    EM_convergence_tol=EM_CONV, Mstep_convergence_tol=MLE_CONV,
                    gibbs_thinning=thin, gibbs_sample_number=sample, burn_in_length=burnin,
                    number_of_cell_types=K, 
-                   mininimal_A=min_A)
+                   mininimal_A=min_A,
+                   verbose_level=verbose)
   )
   
   ## several parameters need special handling to have the right format
