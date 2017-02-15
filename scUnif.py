@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
+    console.setLevel(level)
     console.setFormatter(logging.Formatter('%(message)s'))
     logging.getLogger('').addHandler(console)
 

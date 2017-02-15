@@ -11,7 +11,7 @@ python -m cProfile -o demo_profile.txt scUnif.py \
 	-bk demo_data/demo_bulk_rnaseq_counts.csv \
 	-outdir demo_out \
 	-log demo_out/demo_logging.log \
-	-verbose 2 \
-	-burnin 10 \
-	-sample 20 \
+	-verbose 1 \
+	-burnin 50 \
+	-sample 100 \
 	-EM_maxiter 5

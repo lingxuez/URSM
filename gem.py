@@ -123,7 +123,7 @@ class LogitNormalGEM(object):
         self.suff_stats = {} ## sufficient statistics
 
         if self.hasSC:
-            logging.debug("E-step for single cells started.")
+            logging.debug("\tE-step for single cells started.")
 
             self.Gibbs_SC.update_parameters(self.A, self.pkappa, self.ptau)
             self.Gibbs_SC.gibbs(burnin=self.burnin, sample=self.sample, 
@@ -139,7 +139,7 @@ class LogitNormalGEM(object):
             self.suff_stats["exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
 
         if self.hasBK:
-            logging.debug("E-step for bulk samples started.")
+            logging.debug("\tE-step for bulk samples started.")
 
             self.Gibbs_BK.update_parameters(self.A, self.alpha)
             self.Gibbs_BK.gibbs(burnin=self.burnin, sample=self.sample, 
@@ -157,12 +157,13 @@ class LogitNormalGEM(object):
         path_elbo = np.array([])
 
         while (abs(converged) > self.EM_CONV) and (niter < self.EM_maxiter):
+            logging.info("%d-th EM iteration started...", niter+1)
             ## E-step: gibbs sampling and record suff stats
             self.estep_gibbs()
             ## update suff stats and calculate elbo
             self.mle.update_suff_stats(self.suff_stats) ## update suff stats
             elbo = self.mle.compute_elbo()
-            logging.debug("\t\tE-step finished: elbo=%.6f", elbo)
+            logging.info("\tE-step finished: elbo=%.6f", elbo)
 
             ## M-step
             if self.hasSC:
@@ -178,14 +179,14 @@ class LogitNormalGEM(object):
 
             ## converged?
             elbo = self.mle.compute_elbo()
-            logging.debug("\t\tM-step finished: elbo=%.6f", elbo)
+            logging.info("\tM-step finished: elbo=%.6f", elbo)
 
             converged = abs(elbo - old_elbo)
             old_elbo = elbo
             niter += 1
             path_elbo = np.append(path_elbo, [elbo])
 
-            logging.info("\t%d-th EM iteration finished, ELBO=%.6f", niter, elbo)
+            logging.info("%d-th EM iteration finished, ELBO=%.6f", niter, elbo)
         
         self.path_elbo = path_elbo
         return (niter, elbo, converged, path_elbo)
