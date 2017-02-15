@@ -136,7 +136,7 @@ class LogitNormalGEM(object):
             self.suff_stats["exp_tausq"] = self.Gibbs_SC.exp_tausq
             self.suff_stats["coeffA"] = self.Gibbs_SC.coeffA
             self.suff_stats["coeffAsq"] = self.Gibbs_SC.coeffAsq
-            self.suff_stats["exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
+            self.suff_stats["sc_exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
 
         if self.hasBK:
             logging.debug("\tE-step for bulk samples started.")
@@ -194,9 +194,7 @@ class LogitNormalGEM(object):
 
     def init_mle(self, MLE_CONV, MLE_maxiter):
         """Initialize the class for M-step"""
-        self.mle = LogitNormalMLE(start_A=self.init_A, 
-                start_alpha=self.init_alpha, 
-                BKexpr=self.BKexpr, SCexpr=self.SCexpr,
+        self.mle = LogitNormalMLE(BKexpr=self.BKexpr, SCexpr=self.SCexpr,
                 G=self.G, K=self.K, hasBK=self.hasBK, hasSC=self.hasSC,
                 init_A = self.init_A, init_alpha = self.init_alpha,
                 init_pkappa = self.init_pkappa, init_ptau=self.init_ptau,
