@@ -166,6 +166,7 @@ class LogitNormalGEM(object):
             logging.info("\tE-step finished: elbo=%.6f", elbo)
 
             ## M-step
+            logging.info("\tM-step started...")
             if self.hasSC:
                 self.mle.opt_kappa_tau()
                 self.pkappa = self.mle.pkappa
