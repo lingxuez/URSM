@@ -4,7 +4,7 @@
 
 from __future__ import with_statement
 import numpy as np
-import logging, sys, os
+import logging, sys
 import scipy as scp
 from scipy import special
 
@@ -120,18 +120,19 @@ def simulate_sc(N, L, K, G, A, depths, tau, kappa, tau_sd, kappa_sd):
 if __name__ == "__main__":
     N = 20
     sc_K = 3
-    bk_K = 4
+    bk_K = 3
     L = 10
     M = 15
-    alpha = np.arange(1, bk_K+1)
+    alpha = [1]*bk_K
     G = [0]*3 + [1]*3 + [2]*(L-6)
     tau = 1.5*N
     tau_sd = tau*0.1
     kappa = -1
     kappa_sd = 0.5
 
-    anchor_size=2
-    A = simulate_A(N, max(sc_K, bk_K), anchor_size)
+    anchor_size=3
+    anti_size=2
+    A = simulate_A(N, max(sc_K, bk_K), anchor_size, anti_size)
 
     bk_depths = [5*N] * M
     (bk_expr, bk_W) = simulate_bulk(N, M, bk_K, alpha, A[:, :bk_K], bk_depths)

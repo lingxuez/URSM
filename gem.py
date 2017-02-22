@@ -114,6 +114,11 @@ class LogitNormalGEM(object):
         (self.K, self.min_A, self.est_alpha) = (K, min_A, est_alpha)
         (self.EM_CONV, self.EM_maxiter) = (EM_CONV, EM_maxiter)
         (self.SCexpr, self.G, self.BKexpr) = (SCexpr, G, BKexpr)
+
+        if self.hasSC:
+            self.itype = [] ## cell ids in each type
+            for k in xrange(self.K):
+                self.itype += [np.where(self.G == k)[0]]
  
         self.init_para(init_A, init_pkappa, init_ptau, init_alpha)
         self.init_gibbs(burnin, sample, thin)
@@ -220,18 +225,27 @@ class LogitNormalGEM(object):
 
     def init_para_A(self, init_A):
         """Initialize profile matrix A"""
+        if self.hasSC:
+            ## standardize to get proportions of reads and take means
+            stdSCexpr = std_row(self.SCexpr)
+        if self.hasBK:
+            ## standardize to get proportions of reads and take means
+            BKmean = std_row(self.BKexpr).mean(axis=0)
+
+        ## initialize A
         if init_A is not None:
             self.init_A = init_A
         elif self.hasSC:    
-            self.init_A = np.zeros([self.N, self.K])
-            ## standardize to get proportions of reads and take means
-            stdSCexpr = std_row(self.SCexpr)
+            self.init_A = np.ones([self.N, self.K], dtype=float)/self.N
             for k in xrange(self.K):
-                self.init_A[:, k] = (stdSCexpr[np.where(self.G==k)]).mean(axis=0)
+                ## use single cell sample mean if possible
+                if len(self.itype[k]) > 0:
+                    self.init_A[:, k] = (stdSCexpr[self.itype[k], :]).mean(axis=0)
+                ## if not available, then try to use bulk sample means
+                elif self.hasBK:
+                    self.init_A[:, k] = BKmean
         else:
-            self.init_A = np.zeros([self.N, self.K])
-            ## standardize to get proportions of reads and take means
-            BKmean = std_row(self.BKexpr).mean(axis=0)
+            self.init_A = np.zeros([self.N, self.K])     
             for k in xrange(self.K):
                 self.init_A[:, k] = BKmean
 
@@ -274,7 +288,7 @@ class LogitNormalGEM(object):
         if self.hasSC:
             self.Gibbs_SC = LogitNormalGibbs_SC(A=self.init_A, 
                     pkappa=self.init_pkappa, ptau=self.init_ptau, 
-                    SCexpr=self.SCexpr, G=self.G)
+                    SCexpr=self.SCexpr, G=self.G, itype=self.itype)
             self.Gibbs_SC.init_gibbs()
 
         if self.hasBK:

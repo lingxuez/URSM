@@ -176,19 +176,18 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
 
     ## constructor: initialize with parameters
     def __init__(self, 
-                A=np.empty([0,0]), ## profile matrix
-                pkappa=np.empty([2]), ## [mean, var] for kappa
-                ptau=np.empty([2]), ## [mean, var] for tau
-                SCexpr=np.empty([0,0]), ## L-by-N, single cell expression
-                G=np.empty([0]) ## L-by-1, single cell types
+                A, ## profile matrix
+                pkappa, ## [mean, var] for kappa
+                ptau, ## [mean, var] for tau
+                SCexpr, ## L-by-N, single cell expression
+                G, ## L-by-1, single cell types
+                itype ## cell ids in each type
                 ):
         ## data: never changed
         (self.SCexpr, self.G, self.L) = (SCexpr, G, SCexpr.shape[0]) 
         (self.N, self.K) = A.shape
         self.SCrd = SCexpr.sum(axis=1) ## read depths
-        self.itype = [] ## cell ids in each type
-        for k in xrange(self.K):
-            self.itype += [np.where(self.G == k)[0]]
+        self.itype = itype
         ## parameters: can only be changed by self.update_parameters()
         self.A = np.array(A, dtype=float, copy=True)
         self.pkappa = np.array(pkappa, dtype=float, copy=True)
@@ -262,11 +261,13 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
 
     def update_suffStats(self, sample):
         """Update sufficient stats using current values of latent variables"""
-        self.exp_S += self.S / float(sample)
-        self.exp_kappa += self.kappa / sample
-        self.exp_tau += self.tau / sample
-        self.exp_kappasq += np.square(self.kappa) / sample
-        self.exp_tausq += np.square(self.tau) / sample
+        self.exp_S = np.add(self.exp_S, self.S / float(sample), out=self.exp_S)
+        self.exp_kappa = np.add(self.exp_kappa, self.kappa / sample, out=self.exp_kappa)
+        self.exp_tau = np.add(self.exp_tau, self.tau / sample, out=self.exp_tau)
+        self.exp_kappasq = np.add(self.exp_kappasq, np.square(self.kappa) / sample,
+                                out=self.exp_kappasq)
+        self.exp_tausq = np.add(self.exp_tausq, np.square(self.tau) / sample,
+                                out=self.exp_tausq)
 
         ## sum_il E[- kappa_l^2 * w_il/2 + (S_il-0.5)*kappa_l ] 
         self.exp_elbo_const += (-self.w * \
@@ -281,10 +282,11 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         coeffAsq = (-self.w * np.transpose(np.square(self.tau))) / 2.0
         ## sum over l, mean over gibbs samples
         for k in xrange(self.K):
-            self.coeffA[:, k] += coeffA[self.itype[k],:].sum(axis=0) / \
-                                                     float(sample)
-            self.coeffAsq[:, k] += coeffAsq[self.itype[k],:].sum(axis=0) / \
-                                                     float(sample)
+            if len(self.itype[k]) > 0:
+                self.coeffA[:, k] += coeffA[self.itype[k],:].sum(axis=0) / \
+                                                         float(sample)
+                self.coeffAsq[:, k] += coeffAsq[self.itype[k],:].sum(axis=0) / \
+                                                         float(sample)
 
 
     def update_parameters(self, A, pkappa, ptau):

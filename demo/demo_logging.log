@@ -1,31 +1,87 @@
 ################################################################################
 Gibbs-EM for 3 cell types.
-Date and time: 2017-02-21 19:39:24.170774
+Date and time: 2017-02-21 21:27:53.904900
 Algorithm arguments:
-	--gibbs_sample_number: 3
-	--initial_kappa_mean_precision: None
-	--single_cell_type_file: demo/demo_data/demo_single_cell_types.csv
-	--EM_convergence_tol: 1e-06
-	--initial_A_file: None
-	--initial_alpha_file: None
+	--logging_file: demo/demo_logging.log
+	--gibbs_sample_number: 200
+	--verbose_level: 1
 	--bulk_expr_file: demo/demo_data/demo_bulk_rnaseq_counts.csv
+	--output_prefix: gemout_
+	--initial_kappa_mean_precision: None
+	--Mstep_maxiter: 100
+	--burn_in_length: 100
+	--initial_tau_mean_precision: None
+	--single_cell_type_file: demo/demo_data/demo_single_cell_types.csv
+	--output_directory: demo/demo_out
+	--EM_maxiter: 10
+	--estimate_alpha: True
+	--number_of_cell_types: 3
 	--mininimal_A: 1e-06
 	--single_cell_expr_file: demo/demo_data/demo_single_cell_rnaseq_counts.csv
-	--EM_maxiter: 2
-	--verbose_level: 2
-	--output_directory: demo/demo_out
-	--estimate_alpha: True
-	--initial_tau_mean_precision: None
-	--gibbs_thinning: 1
-	--logging_file: demo/demo_logging.log
-	--anchor_gene_file: demo/demo_data/demo_anchor_genes.csv
-	--burn_in_length: 1
-	--number_of_cell_types: 3
-	--output_prefix: gemout_
-	--Mstep_maxiter: 100
+	--initial_A_file: None
+	--initial_alpha_file: None
 	--Mstep_convergence_tol: 1e-06
+	--EM_convergence_tol: 1e-06
+	--gibbs_thinning: 1
 ################################################################################
 Loading data ...
 15 bulk samples on 20 genes are loaded.
 10 single cells on 20 genes are loaded.
+
+Gibbs-EM started ...
+1-th EM iteration started...
+	E-step finished: elbo=-85.852018
+	M-step started...
+	M-step finished: elbo=-85.826723
+1-th EM iteration finished, ELBO=-85.826723
+2-th EM iteration started...
+	E-step finished: elbo=-85.749545
+	M-step started...
+	M-step finished: elbo=-85.746396
+2-th EM iteration finished, ELBO=-85.746396
+3-th EM iteration started...
+	E-step finished: elbo=-85.762698
+	M-step started...
+	M-step finished: elbo=-85.758519
+3-th EM iteration finished, ELBO=-85.758519
+4-th EM iteration started...
+	E-step finished: elbo=-85.572233
+	M-step started...
+	M-step finished: elbo=-85.568943
+4-th EM iteration finished, ELBO=-85.568943
+5-th EM iteration started...
+	E-step finished: elbo=-85.863658
+	M-step started...
+	M-step finished: elbo=-85.860856
+5-th EM iteration finished, ELBO=-85.860856
+6-th EM iteration started...
+	E-step finished: elbo=-85.830899
+	M-step started...
+	M-step finished: elbo=-85.826099
+6-th EM iteration finished, ELBO=-85.826099
+7-th EM iteration started...
+	E-step finished: elbo=-85.608169
+	M-step started...
+	M-step finished: elbo=-85.603937
+7-th EM iteration finished, ELBO=-85.603937
+8-th EM iteration started...
+	E-step finished: elbo=-85.777596
+	M-step started...
+	M-step finished: elbo=-85.775245
+8-th EM iteration finished, ELBO=-85.775245
+9-th EM iteration started...
+	E-step finished: elbo=-85.818643
+	M-step started...
+	M-step finished: elbo=-85.813519
+9-th EM iteration finished, ELBO=-85.813519
+10-th EM iteration started...
+	E-step finished: elbo=-85.711390
+	M-step started...
+	M-step finished: elbo=-85.708528
+10-th EM iteration finished, ELBO=-85.708528
+Gibbs-EM finished in 20.74 seconds.
+
+Results are under directory demo/demo_out.
+Logging info is written to demo/demo_logging.log.
+################################################################################
 
