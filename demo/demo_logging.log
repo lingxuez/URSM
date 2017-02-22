@@ -1,0 +1,31 @@
+################################################################################
+Gibbs-EM for 3 cell types.
+Date and time: 2017-02-21 19:39:24.170774
+Algorithm arguments:
+	--gibbs_sample_number: 3
+	--initial_kappa_mean_precision: None
+	--single_cell_type_file: demo/demo_data/demo_single_cell_types.csv
+	--EM_convergence_tol: 1e-06
+	--initial_A_file: None
+	--initial_alpha_file: None
+	--bulk_expr_file: demo/demo_data/demo_bulk_rnaseq_counts.csv
+	--mininimal_A: 1e-06
+	--single_cell_expr_file: demo/demo_data/demo_single_cell_rnaseq_counts.csv
+	--EM_maxiter: 2
+	--verbose_level: 2
+	--output_directory: demo/demo_out
+	--estimate_alpha: True
+	--initial_tau_mean_precision: None
+	--gibbs_thinning: 1
+	--logging_file: demo/demo_logging.log
+	--anchor_gene_file: demo/demo_data/demo_anchor_genes.csv
+	--burn_in_length: 1
+	--number_of_cell_types: 3
+	--output_prefix: gemout_
+	--Mstep_maxiter: 100
+	--Mstep_convergence_tol: 1e-06
+################################################################################
+Loading data ...
+15 bulk samples on 20 genes are loaded.
+10 single cells on 20 genes are loaded.
+

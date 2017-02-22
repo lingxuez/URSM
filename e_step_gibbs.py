@@ -41,10 +41,9 @@ class LogitNormalGibbs_base(object):
         """perform one cycle of Gibbs sampling"""
         pass
 
-    ## Main sampling iteration
     def gibbs(self, burnin=100, sample=100, thin=1, 
                 keepChain=False):
-        """Gibbs sampling"""
+        """Gibbs sampling cycle"""
         ## initialize
         self.init_gibbs(keepChain)
         self.init_suffStats()
@@ -235,6 +234,7 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
             self.tau_gibbs = np.zeros([sample, self.L], dtype=float)
             self.w_gibbs = np.zeros([sample, self.L, self.N], dtype=float)
             self.S_gibbs = np.zeros([sample, self.L, self.N], dtype=float)
+
 
     def init_suffStats(self):
         """initialize sufficient statistics to be zeros"""

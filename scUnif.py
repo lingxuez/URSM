@@ -1,5 +1,8 @@
-## 2016/07/21 Lingxue Zhu
+##
 ## Gibbs EM for modeling bulk and single cell RNA seq data
+##
+## Copyright Lingxue Zhu (lzhu1@cmu.edu).
+## All Rights Reserved.
 ##
 ## #################
 ##  -- parameters:
@@ -55,6 +58,7 @@
 ##         
 ## ##################
 
+from __future__ import with_statement
 from gem import * 
 import numpy as np
 import logging, json, sys, os, argparse, datetime, time
@@ -87,6 +91,24 @@ def load_from_file(filename, dtype=float, delimiter=","):
     else:
         return np.loadtxt(filename, dtype=dtype, delimiter=delimiter)
 
+# def load_anchor_genes(filename):
+#     """
+#     Load anchor genes from file. 
+#     Each line contains the indices of anchor genes for each cell type.
+#     Empty lines meaning no anchor gene is provided for that type.
+#     """
+#     if filename is None:
+#         return None
+
+#     with open(filename) as fin:
+#         lines = fin.read().splitlines()
+#         i_anchors = []
+#         for line in lines:
+#             if len(line) > 0:
+#                 i_anchors += [map(int,line.split(","))]
+#             else:
+#                 i_anchors += [[]]
+#     return i_anchors
 
 ###############
 ## read data from files
@@ -98,6 +120,7 @@ if __name__ == "__main__":
     parser.add_argument("-sc", "--single_cell_expr_file", type=str, default=None)
     parser.add_argument("-bk", "--bulk_expr_file", type=str, default=None)
     parser.add_argument("-ctype", "--single_cell_type_file", type=str, default=None)
+    # parser.add_argument("-anchor", "--anchor_gene_file", type=str, default=None)
     parser.add_argument("-K", "--number_of_cell_types", type=int, default=3)
     parser.add_argument("-init_A", "--initial_A_file", type=str, default=None)
     parser.add_argument("-min_A", "--mininimal_A", type=float, default=1e-6)
@@ -160,8 +183,9 @@ if __name__ == "__main__":
     init_A = load_from_file(args.initial_A_file)
     init_alpha = load_from_file(args.initial_alpha_file)
     K = args.number_of_cell_types
+    # i_anchors = load_anchor_genes(args.anchor_gene_file)
 
-    ## check input data
+    ## check input data are valid
     if SCexpr is None and BKexpr is None:
         logging.error("ERROR: Must provide at least one of single cell or bulk data.")
         sys.exit(1)
@@ -181,10 +205,10 @@ if __name__ == "__main__":
             logging.error("ERROR: Cell types in `%s` can only take values in {0, ..., K-1}.",
                 args.single_cell_type_file)
             sys.exit(1)
-        elif len(set(G)) != K:
-            logging.error("ERROR: Cell types in `%s` must have K distinct values.",
-                args.single_cell_type_file)
-            sys.exit(1)
+        # elif len(set(G)) != K:
+        #     logging.error("ERROR: Cell types in `%s` must have K distinct values.",
+        #         args.single_cell_type_file)
+        #     sys.exit(1)
 
     if BKexpr is not None:
         logging.info("%d bulk samples on %d genes are loaded.", 
@@ -192,6 +216,10 @@ if __name__ == "__main__":
     if SCexpr is not None:
         logging.info("%d single cells on %d genes are loaded.\n", 
                         SCexpr.shape[0], SCexpr.shape[1])
+
+    # if i_anchors is not None and len(i_anchors)!=K:
+    #     logging.error("ERROR: number of lines in %s must be equal to K.", args.anchor_gene_file)
+    #     sys.exit(1)
     
     ## perform GEM
     logging.info("Gibbs-EM started ...")

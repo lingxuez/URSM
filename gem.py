@@ -1,6 +1,8 @@
-## 2016/07/21 Lingxue Zhu
+##
 ## Gibbs EM for modeling bulk and single cell RNA seq data
 ##
+## Copyright Lingxue Zhu (lzhu1@cmu.edu).
+## All Rights Reserved.
 ## #################
 ##  -- parameters:
 ##     A: N x K, gene expression profiles; colSums(A) = 1
@@ -70,7 +72,7 @@ class LogitNormalGEM(object):
     in joint modeling of bulk and single cell RNA seq data.
     """
 
-    def __init__(self, BKexpr=None, SCexpr=None, K=3, G=None, 
+    def __init__(self, BKexpr=None, SCexpr=None, K=3, G=None,
                 init_A = None, min_A=1e-6, init_alpha = None, est_alpha=True, 
                 init_pkappa = None, init_ptau = None, 
                 burnin=200, sample=200, thin=1,

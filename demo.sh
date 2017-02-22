@@ -5,12 +5,13 @@
 	## output directory
 	## logging file
 
-python -m cProfile -o demo_profile.txt scUnif.py \
-	-sc demo_data/demo_single_cell_rnaseq_counts.csv \
-	-ctype demo_data/demo_single_cell_types.csv \
-	-bk demo_data/demo_bulk_rnaseq_counts.csv \
-	-outdir demo_out \
-	-log demo_out/demo_logging.log \
+python -m cProfile -o demo/demo_profile.txt scUnif.py \
+	-sc demo/demo_data/demo_single_cell_rnaseq_counts.csv \
+	-ctype demo/demo_data/demo_single_cell_types.csv \
+	-K 4 \
+	-bk demo/demo_data/demo_bulk_rnaseq_counts.csv \
+	-outdir demo/demo_out \
+	-log demo/demo_logging.log \
 	-verbose 2 \
 	-burnin 1 \
 	-sample 3 \
