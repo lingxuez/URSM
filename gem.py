@@ -173,7 +173,7 @@ class LogitNormalGEM(object):
             logging.info("\tE-step finished: elbo=%.6f", elbo)
 
             ## M-step
-            logging.info("\tM-step started...")
+            # logging.info("\tM-step started...")
             if self.hasSC:
                 self.mle.opt_kappa_tau()
                 self.pkappa = self.mle.pkappa
@@ -194,7 +194,7 @@ class LogitNormalGEM(object):
             niter += 1
             path_elbo = np.append(path_elbo, [elbo])
 
-            logging.info("%d-th EM iteration finished, ELBO=%.6f", niter, elbo)
+            # logging.info("%d-th EM iteration finished, ELBO=%.6f", niter, elbo)
         
         self.path_elbo = path_elbo
         return (niter, elbo, converged, path_elbo)
