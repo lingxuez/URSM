@@ -119,6 +119,8 @@ class LogitNormalGEM(object):
             self.itype = [] ## cell ids in each type
             for k in xrange(self.K):
                 self.itype += [np.where(self.G == k)[0]]
+        else:
+            self.itype = None
  
         self.init_para(init_A, init_pkappa, init_ptau, init_alpha)
         self.init_gibbs(burnin, sample, thin)
@@ -203,7 +205,8 @@ class LogitNormalGEM(object):
     def init_mle(self, MLE_CONV, MLE_maxiter):
         """Initialize the class for M-step"""
         self.mle = LogitNormalMLE(BKexpr=self.BKexpr, SCexpr=self.SCexpr,
-                G=self.G, K=self.K, hasBK=self.hasBK, hasSC=self.hasSC,
+                G=self.G, K=self.K, itype=self.itype,
+                hasBK=self.hasBK, hasSC=self.hasSC,
                 init_A = self.init_A, init_alpha = self.init_alpha,
                 init_pkappa = self.init_pkappa, init_ptau=self.init_ptau,
                 min_A=self.min_A, MLE_CONV=MLE_CONV, MLE_maxiter=MLE_maxiter)
@@ -289,12 +292,12 @@ class LogitNormalGEM(object):
             self.Gibbs_SC = LogitNormalGibbs_SC(A=self.init_A, 
                     pkappa=self.init_pkappa, ptau=self.init_ptau, 
                     SCexpr=self.SCexpr, G=self.G, itype=self.itype)
-            self.Gibbs_SC.init_gibbs()
+            # self.Gibbs_SC.init_gibbs()
 
         if self.hasBK:
             self.Gibbs_BK =  LogitNormalGibbs_BK(A=self.init_A, 
                     alpha=self.init_alpha, BKexpr=self.BKexpr)
-            self.Gibbs_BK.init_gibbs()
+            # self.Gibbs_BK.init_gibbs()
 
 
 

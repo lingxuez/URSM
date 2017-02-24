@@ -118,27 +118,30 @@ def simulate_sc(N, L, K, G, A, depths, tau, kappa, tau_sd, kappa_sd):
 ## simulate data
 ##############
 if __name__ == "__main__":
-    N = 20
+    N = 30
     sc_K = 3
-    bk_K = 3
-    L = 10
+    bk_K = 5
+    L = 20
     M = 15
     alpha = [1]*bk_K
-    G = [0]*3 + [1]*3 + [2]*(L-6)
+    G = np.array([0]*5 + [1]*5 + [2]*(L-10))
     tau = 1.5*N
     tau_sd = tau*0.1
     kappa = -1
     kappa_sd = 0.5
+    K = max(sc_K, bk_K)
 
     anchor_size=3
     anti_size=2
-    A = simulate_A(N, max(sc_K, bk_K), anchor_size, anti_size)
+    A = simulate_A(N, K, anchor_size, anti_size)
 
-    bk_depths = [5*N] * M
+    bk_depths = [50*N] * M
     (bk_expr, bk_W) = simulate_bulk(N, M, bk_K, alpha, A[:, :bk_K], bk_depths)
 
-    sc_depths = [2*N] * L
-    (sc_expr, sc_S) = simulate_sc(N, L, sc_K, G, A, sc_depths, tau, kappa, tau_sd, kappa_sd)
+
+    sc_depths = [10*N] * L
+    (sc_expr, sc_S) = simulate_sc(N, L, sc_K, G, A[:, :sc_K], 
+                                sc_depths, tau, kappa, tau_sd, kappa_sd)
 
     ## save results files
     data_dir = "demo_data/"
@@ -149,13 +152,32 @@ if __name__ == "__main__":
     np.savetxt(data_dir + "demo_single_cell_types.csv", G, fmt="%d", delimiter=",")
     np.savetxt(data_dir + "demo_profile_matrix.csv", A, delimiter=",")
 
-    # ## anchor genes
-    # k = 3
-    # i_anchors = [[], [], [], np.arange(anchor_size*k, anchor_size*(k+1))]
-    # with open(data_dir + "demo_anchor_genes.csv", mode="wt") as fout:
-    #     for i in range(len(i_anchors)):
-    #         fout.write(",".join(map(str, i_anchors[i])))
-    #         fout.write("\n")
+    ## initialize A with marker information
+    
+    ## standardize to get proportions of reads and take means
+    std_sc_expr = sc_expr / sc_expr.sum(axis=1)[:, np.newaxis]
+    std_bk_expr = bk_expr / bk_expr.sum(axis=1)[:, np.newaxis]
+
+    init_A = np.ones((N, K), dtype=float) / N
+    for k in range(K):
+        ## use single cell sample mean if possible
+        itype = np.where(G == k)[0]
+        if len(itype) > 0:
+            init_A[:, k] = (std_sc_expr[itype, :]).mean(axis=0)
+
+    ## set marker genes
+    for k in range(K):
+        ianchor = range(k*anchor_size, (k+1)*anchor_size)
+        for l in range(K):
+            if l != k:
+                init_A[ianchor, l] = 0
+    ## re-normalize
+    init_A = init_A / init_A.sum(axis=0)[np.newaxis, :]
+    # print init_A
+
+    np.savetxt(data_dir + "demo_init_A.csv", init_A, delimiter=",")
+
+
 
 
 

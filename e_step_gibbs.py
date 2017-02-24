@@ -17,16 +17,12 @@ class LogitNormalGibbs_base(object):
     def __init__(self, parameters):
         pass
 
-    def init_gibbs(self, keepChain=False):
+    def init_gibbs(self):
         """initialize values of random variables"""
         pass
 
     def init_suffStats(self):
         """initialize sufficient statistics"""
-        pass
-
-    def update_chain(self, isample):
-        """add current values to the i-th recorded sample"""
         pass
 
     def update_suffStats(self, sample):
@@ -41,19 +37,18 @@ class LogitNormalGibbs_base(object):
         """perform one cycle of Gibbs sampling"""
         pass
 
-    def gibbs(self, burnin=100, sample=100, thin=1, 
-                keepChain=False):
+    def gibbs(self, burnin=100, sample=100, thin=1):
         """Gibbs sampling cycle"""
         ## initialize
-        self.init_gibbs(keepChain)
+        self.init_gibbs()
         self.init_suffStats()
         isample = 0
 
         ## burnin period
         # logging.debug("\t\tBurnin period: %s samples..." % burnin)
-
         for giter in xrange(burnin):
             self.gibbs_cycle()
+
         ## sampling
         # logging.debug("\t\tBurnin finished. Gibbs sampling started...")
         for giter in xrange(sample*thin):
@@ -61,16 +56,9 @@ class LogitNormalGibbs_base(object):
             if giter % thin == 0:
                 ## update sufficient statistics
                 self.update_suffStats(sample)
-                ## record samples
-                if keepChain:
-                    self.update_chain(isample)
-                ## print progress for every 50 collected samples
                 isample += 1
                 # if (isample % 50 == 0):
                     # logging.debug("\t\t\t%s/%s finished.", isample, sample)
-        
-        ## finished
-        # logging.debug("\t\tGibbs samples finished: %s samples.", sample)
 
 
 #######################
@@ -94,16 +82,16 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
         self.alpha = np.array(alpha, dtype=float, copy=True)
     
 
-    def init_gibbs(self, keepChain=False):
+    def init_gibbs(self):
         """initialize latent variable values"""
+        ## mixing proportions
         self.W = np.full([self.K, self.M], 1.0/self.K, dtype=float)
-        self.Z = np.zeros([self.M, self.N, self.K])
         self.AW = np.dot(self.A, self.W)
 
-        ## store sampling results
-        if keepChain:
-            self.W_gibbs = np.zeros([sample, self.K, self.M], dtype=float)
-            self.Z_gibbs = np.zeros([sample, self.M, self.N, self.K], dtype=float)
+        ## initialize Z in a way such that it captures the marker information
+        ## without markers, Z's are zero so the first W is drawn according to alpha
+        self.Z = np.zeros([self.M, self.N, self.K])
+        ## add marker information if any
 
 
     def init_suffStats(self):
@@ -113,12 +101,6 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
         self.exp_Zjk = np.zeros([self.M, self.K], dtype=float)
         self.exp_logW = np.zeros([self.K, self.M], dtype=float)
         self.exp_W = np.zeros([self.K, self.M], dtype=float)
-
-
-    def update_chain(self, isample):
-        """let current values to be the i-th recorded sample"""
-        self.W_gibbs[isample, :, :] = self.W
-        self.Z_gibbs[isample, :, :, :] = self.Z
 
 
     def update_suffStats(self, sample):
@@ -144,10 +126,9 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
     #########################
     def gibbs_cycle(self):
         """perform one cycle of Gibbs sampling"""
-        ## note: Z is not carefully initialized
-        ## so have to draw Z first!
         self.draw_Z()
         self.draw_W()
+        
 
 
     def draw_Z(self):
@@ -157,7 +138,6 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
                 pval = self.W[:, j]*self.A[i, :]
                 self.Z[j, i, :] = np.random.multinomial(n=self.BKexpr[j, i],
                                     pvals = pval/self.AW[i, j])
-
 
     def draw_W(self):
         """W: K x M, proportions"""
@@ -227,12 +207,6 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         self.S[ipos] = 1
         ## keep track of A[:, G]*S to reduce computation time
         self.sum_AS = (np.transpose(self.A[:, self.G]) * self.S).sum(axis=1)
-        ## store sampling results
-        if keepChain:
-            self.kappa_gibbs = np.zeros([sample, self.L], dtype=float)
-            self.tau_gibbs = np.zeros([sample, self.L], dtype=float)
-            self.w_gibbs = np.zeros([sample, self.L, self.N], dtype=float)
-            self.S_gibbs = np.zeros([sample, self.L, self.N], dtype=float)
 
 
     def init_suffStats(self):
@@ -249,14 +223,6 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         self.coeffAsq = np.zeros([self.N, self.K], dtype=float)
         ## elbo that doesn't involve A
         self.exp_elbo_const = 0
-
-
-    def update_chain(self, isample):
-        """make current values to be the i-th recorded sample"""
-        self.kappa_gibbs[isample, :] = self.kappa
-        self.tau_gibbs[isample, :] = self.tau
-        self.w_gibbs[isample, :, :] = self.w
-        self.S_gibbs[isample, :, :] = self.S
 
 
     def update_suffStats(self, sample):
@@ -357,59 +323,4 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
             ## draw (kappa, tau) ~ Gaussian(mP, PP^-1)
             newdraw = np.random.multivariate_normal(mP, np.linalg.inv(PP))
             (self.kappa[0, l], self.tau[0, l]) = newdraw
-
-
-##########################
-## test & time
-##########################
-# import time
-
-# data = np.load("simulated.npz")
-
-# myGibbs = LogitNormalGibbs_SC(A=data["A"], 
-#           pkappa=data["pkappa"], ptau=data["ptau"],
-#           SCexpr=data["SCexpr"], G=data["G"])
-
-# starttime = time.time()
-# myGibbs.gibbs(burnin=0, sample=100)
-# print time.time()-starttime
-## N=300, L=150, 100 Gibbs samples: 29 sec
-
-
-# myGibbs = LogitNormalGibbs_BK(A=data["A"], 
-#           alpha=data["alpha"], BKexpr=data["BKexpr"])
-
-# starttime = time.time()
-# myGibbs.gibbs(burnin=0, sample=100)
-# print time.time()-starttime
-
-## N=300, M=200, 100 Gibbs samples: 42 sec
-
-
-# ############# profiling ################
-# import cProfile
-# cProfile.run('myGibbs.gibbs(burnin=0, sample=10)')
-
-################ check results ################
-## BK
-# W = data["W"]
-# W = W[:, 0, :]
-# print W.shape
-# print myGibbs.exp_W.shape
-# corrcoeff = np.corrcoef(W[:, 2], myGibbs.exp_W[2, :])
-
-## SC
-# idrop = np.where(data["SCexpr"] == 0)
-# istruct0 = np.where(np.logical_and(data["SCexpr"] == 0, data["S"] == 1))
-
-# np.mean(myGibbs.exp_S[idrop])
-# np.mean(myGibbs.exp_S[istruct0])
-
-# import matplotlib as mpl
-# import matplotlib.pyplot as plt
-
-# fig = plt.figure(1, figsize=(9, 6))
-# ax = fig.add_subplot(111)
-# SCbox = ax.boxplot([myGibbs.exp_S[idrop], myGibbs.exp_S[istruct0]])
-# fig.savefig("SC_boxplot.png", bbox_inches="tight")
 
