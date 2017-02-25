@@ -118,11 +118,11 @@ def simulate_sc(N, L, K, G, A, depths, tau, kappa, tau_sd, kappa_sd):
 ## simulate data
 ##############
 if __name__ == "__main__":
-    N = 30
+    N = 50
     sc_K = 3
     bk_K = 5
     L = 20
-    M = 15
+    M = 30
     alpha = [1]*bk_K
     G = np.array([0]*5 + [1]*5 + [2]*(L-10))
     tau = 1.5*N
@@ -152,8 +152,15 @@ if __name__ == "__main__":
     np.savetxt(data_dir + "demo_single_cell_types.csv", G, fmt="%d", delimiter=",")
     np.savetxt(data_dir + "demo_profile_matrix.csv", A, delimiter=",")
 
+    ## marker genes indices
+    iMarkers = np.zeros((K*anchor_size, 2), dtype=int)
+    for k in range(K):
+        ianchor = range(k*anchor_size, (k+1)*anchor_size)
+        iMarkers[ianchor, 0] = ianchor
+        iMarkers[ianchor, 1] = k
+    np.savetxt(data_dir + "demo_iMarkers.csv", iMarkers, fmt="%d", delimiter=",")
+
     ## initialize A with marker information
-    
     ## standardize to get proportions of reads and take means
     std_sc_expr = sc_expr / sc_expr.sum(axis=1)[:, np.newaxis]
     std_bk_expr = bk_expr / bk_expr.sum(axis=1)[:, np.newaxis]

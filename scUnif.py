@@ -122,6 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("-ctype", "--single_cell_type_file", type=str, default=None)
     # parser.add_argument("-anchor", "--anchor_gene_file", type=str, default=None)
     parser.add_argument("-K", "--number_of_cell_types", type=int, default=3)
+    parser.add_argument("-iMarkers", "--iMarkers_file", type=str, default=None)
     parser.add_argument("-init_A", "--initial_A_file", type=str, default=None)
     parser.add_argument("-min_A", "--mininimal_A", type=float, default=1e-6)
     parser.add_argument("-init_alpha", "--initial_alpha_file", type=str, default=None)
@@ -182,8 +183,8 @@ if __name__ == "__main__":
     G = load_from_file(args.single_cell_type_file, dtype=int)
     init_A = load_from_file(args.initial_A_file)
     init_alpha = load_from_file(args.initial_alpha_file)
+    iMarkers = load_from_file(args.iMarkers_file, dtype=int)
     K = args.number_of_cell_types
-    # i_anchors = load_anchor_genes(args.anchor_gene_file)
 
     ## check input data are valid
     if SCexpr is None and BKexpr is None:
@@ -226,6 +227,7 @@ if __name__ == "__main__":
     start = time.time()
     myGEM = LogitNormalGEM(
                   BKexpr=BKexpr, SCexpr=SCexpr, G=G, K=args.number_of_cell_types, 
+                  iMarkers=iMarkers,
                   init_A=init_A, min_A=args.mininimal_A,
                   init_alpha=init_alpha, est_alpha=args.estimate_alpha,
                   init_pkappa=args.initial_kappa_mean_precision, 

@@ -68,12 +68,13 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
 
     ## constructor: initialize with parameters
     def __init__(self, 
-                A=np.empty([0,0]), ## profile matrix
-                alpha=np.empty([0,0]), ## mixture propotion prior 
-                BKexpr=np.empty([0,0]) ## M-by-N, bulk expression
+                A, ## profile matrix
+                alpha, ## mixture propotion prior 
+                BKexpr, ## M-by-N, bulk expression
+                iMarkers=None ## indices of marker genes
                 ):
         ## data: unchanged throughout sampling
-        self.BKexpr = BKexpr
+        self.BKexpr, self.iMarkers = BKexpr, iMarkers
         (self.M, self.N, self.K) = (BKexpr.shape[0], A.shape[0], A.shape[1])
         ## read depths
         self.BKrd = BKexpr.sum(axis=1)
@@ -92,6 +93,10 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
         ## without markers, Z's are zero so the first W is drawn according to alpha
         self.Z = np.zeros([self.M, self.N, self.K])
         ## add marker information if any
+        if self.iMarkers is not None:
+            for index in range(self.iMarkers.shape[0]):
+                (i, k) = self.iMarkers[index, :]
+                self.Z[:, i, k] = self.BKexpr[:, i]                    
 
 
     def init_suffStats(self):
@@ -126,10 +131,13 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
     #########################
     def gibbs_cycle(self):
         """perform one cycle of Gibbs sampling"""
-        self.draw_Z()
-        self.draw_W()
-        
+        ## draw W first because Z is carefully initialized with marker info
+        # self.draw_W()
+        # self.draw_Z()
 
+        self.draw_W_mean()
+        self.draw_Z_mean()
+        
 
     def draw_Z(self):
         """Z: M x N x K, counts"""
@@ -146,6 +154,23 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
             self.W[:, j] = np.random.dirichlet(self.alpha + post_alpha[j, :])
         ## update AW: N x M
         self.AW = np.dot(self.A, self.W)
+
+
+    def draw_Z_mean(self):
+        """Z: M x N x K, expected"""
+        for j in xrange(self.M):
+            for i in range(self.N):
+                pval = self.W[:, j]*self.A[i, :]
+                self.Z[j, i, :] = pval * self.BKexpr[j, i] /self.AW[i, j]
+
+    def draw_W_mean(self):
+        """W: K x M, proportions"""
+        post_alpha = self.Z.sum(axis=1)
+        self.W = post_alpha.transpose() + self.alpha[:, np.newaxis]
+        self.W /= self.W.sum(axis=0)[np.newaxis, :]
+        ## update AW: N x M
+        self.AW = np.dot(self.A, self.W)
+
 
 
 
@@ -299,6 +324,25 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
                         self.SCrd[l] * np.log(1 + A_curr/sum_other))
             ## note: scp.stats.bernoulli.rv is slow!!!
             self.S[l][i] = np.random.binomial(1, b)
+            ## update sum_AS
+            self.sum_AS[l] = sum_other + A_curr * self.S[l, i]
+
+
+    def draw_S_mean(self):
+        """S: L-by-N; binary variables"""
+        ## only update the entries where self.SCexpr==0
+        for index in xrange(len(self.izero[0])):
+            (l, i) = (self.izero[0][index], self.izero[1][index])
+            A_curr = self.A[i, self.G[l]]
+
+            sum_other = self.sum_AS[l] - A_curr * self.S[l, i]
+            if sum_other == 0:
+                b = scp.special.expit(self.psi[l][i])
+            else:
+                b = scp.special.expit(self.psi[l][i] - 
+                        self.SCrd[l] * np.log(1 + A_curr/sum_other))
+            ## note: scp.stats.bernoulli.rv is slow!!!
+            self.S[l][i] = b 
             ## update sum_AS
             self.sum_AS[l] = sum_other + A_curr * self.S[l, i]
 

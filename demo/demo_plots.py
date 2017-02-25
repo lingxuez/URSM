@@ -29,6 +29,8 @@ res_dir = "demo_out/"
 est_A = np.loadtxt(res_dir + "gemout_est_A.csv", dtype=float, delimiter=",")
 est_W = np.loadtxt(res_dir + "gemout_exp_W.csv", dtype=float, delimiter=",")
 
+# print est_W.sum(axis=0)
+
 
 ## visualize
 K = true_A.shape[1]
@@ -51,3 +53,8 @@ for k in range(K):
 	plt.title('mixing proportions')
 	plt.savefig('estimation_W' + str(k) + '.png')
 	plt.close()
+
+print "L1 loss A:",
+print np.sum(np.absolute(true_A.flatten() - est_A.flatten())) / K
+print "L1 loss W:",
+print np.sum(np.absolute(true_W.flatten() - est_W.transpose().flatten())) / K

@@ -72,12 +72,13 @@ class LogitNormalGEM(object):
     in joint modeling of bulk and single cell RNA seq data.
     """
 
-    def __init__(self, BKexpr=None, SCexpr=None, K=3, G=None,
+    def __init__(self, BKexpr=None, SCexpr=None, K=3, G=None, iMarkers=None,
                 init_A = None, min_A=1e-6, init_alpha = None, est_alpha=True, 
                 init_pkappa = None, init_ptau = None, 
                 burnin=200, sample=200, thin=1,
+                burnin_bk=10, sample_bk=20,
                 MLE_CONV=1e-6, MLE_maxiter=100,
-                EM_CONV=1e-3, EM_maxiter=100,):
+                EM_CONV=1e-3, EM_maxiter=100):
         """
         Args:
             BKexpr: M-by-N np matrix, bulk RNA-seq counts.
@@ -88,6 +89,8 @@ class LogitNormalGEM(object):
             G: L-by-1 np vector, each element takes values from {0, ..., K-1},
                     indicating the cell type for each single cell. 
                     This value must be provided along with "SCexpr".
+            iMarkers: a matrix with 2 columns. First column: indices of marker genes;
+                    second column: cell types that the genes mark
             init_A: (optional) the initial value of the profile matrix A.
                     The default is to use sample mean of "SCexpr" in each type,
                     if available; otherwise, the sample mean of "BKexpr" 
@@ -111,9 +114,11 @@ class LogitNormalGEM(object):
             EL_maxiter: the maximal number of interations in the EM-algorithm.
         """
         self.hasBK, self.hasSC = BKexpr is not None, SCexpr is not None
-        (self.K, self.min_A, self.est_alpha) = (K, min_A, est_alpha)
-        (self.EM_CONV, self.EM_maxiter) = (EM_CONV, EM_maxiter)
-        (self.SCexpr, self.G, self.BKexpr) = (SCexpr, G, BKexpr)
+        self.K, self.min_A, self.est_alpha = K, min_A, est_alpha
+        self.EM_CONV, self.EM_maxiter = EM_CONV, EM_maxiter
+        self.burnin_bk, self.sample_bk = burnin_bk, sample_bk
+        self.SCexpr, self.G, self.BKexpr = SCexpr, G, BKexpr
+        self.iMarkers = iMarkers
 
         if self.hasSC:
             self.itype = [] ## cell ids in each type
@@ -151,7 +156,7 @@ class LogitNormalGEM(object):
             logging.debug("\tE-step for bulk samples started.")
 
             self.Gibbs_BK.update_parameters(self.A, self.alpha)
-            self.Gibbs_BK.gibbs(burnin=self.burnin, sample=self.sample, 
+            self.Gibbs_BK.gibbs(burnin=self.burnin_bk, sample=self.sample_bk,
                 thin=self.thin)
 
             self.suff_stats["exp_Zik"] = self.Gibbs_BK.exp_Zik
@@ -292,12 +297,11 @@ class LogitNormalGEM(object):
             self.Gibbs_SC = LogitNormalGibbs_SC(A=self.init_A, 
                     pkappa=self.init_pkappa, ptau=self.init_ptau, 
                     SCexpr=self.SCexpr, G=self.G, itype=self.itype)
-            # self.Gibbs_SC.init_gibbs()
 
         if self.hasBK:
             self.Gibbs_BK =  LogitNormalGibbs_BK(A=self.init_A, 
-                    alpha=self.init_alpha, BKexpr=self.BKexpr)
-            # self.Gibbs_BK.init_gibbs()
+                    alpha=self.init_alpha, BKexpr=self.BKexpr,
+                    iMarkers=self.iMarkers)
 
 
 
