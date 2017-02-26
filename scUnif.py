@@ -126,13 +126,17 @@ if __name__ == "__main__":
     parser.add_argument("-init_A", "--initial_A_file", type=str, default=None)
     parser.add_argument("-min_A", "--mininimal_A", type=float, default=1e-6)
     parser.add_argument("-init_alpha", "--initial_alpha_file", type=str, default=None)
-    parser.add_argument("-est_alpha", "--estimate_alpha", type=bool, default=True)
+    # parser.add_argument("-est_alpha", "--estimate_alpha", type=bool, default=False)
+    parser.add_argument('-no_est_alpha', '--no_est_alpha', dest='est_alpha', action='store_false')
+    parser.set_defaults(est_alpha=True)
     parser.add_argument("-pkappa", "--initial_kappa_mean_precision", nargs=2, type=float, 
                             action='store', default=None)
     parser.add_argument("-ptau", "--initial_tau_mean_precision", nargs=2, type=float, 
                             action='store', default=None)
     parser.add_argument("-burnin", "--burn_in_length", type=int, default=200)
     parser.add_argument("-sample", "--gibbs_sample_number", type=int, default=200)
+    parser.add_argument("-burnin_bk", "--burn_in_length_bk", type=int, default=100)
+    parser.add_argument("-sample_bk", "--gibbs_sample_number_bk", type=int, default=1)
     parser.add_argument("-thin", "--gibbs_thinning", type=int, default=1)
     parser.add_argument("-MLE_CONV", "--Mstep_convergence_tol", type=float, default=1e-6)
     parser.add_argument("-EM_CONV", "--EM_convergence_tol", type=float, default=1e-6)
@@ -186,6 +190,9 @@ if __name__ == "__main__":
     iMarkers = load_from_file(args.iMarkers_file, dtype=int)
     K = args.number_of_cell_types
 
+    # init_alpha = np.array([10]*K)
+    logging.debug("Estimate alpha: " + str(args.est_alpha))
+
     ## check input data are valid
     if SCexpr is None and BKexpr is None:
         logging.error("ERROR: Must provide at least one of single cell or bulk data.")
@@ -229,11 +236,12 @@ if __name__ == "__main__":
                   BKexpr=BKexpr, SCexpr=SCexpr, G=G, K=args.number_of_cell_types, 
                   iMarkers=iMarkers,
                   init_A=init_A, min_A=args.mininimal_A,
-                  init_alpha=init_alpha, est_alpha=args.estimate_alpha,
+                  init_alpha=init_alpha, est_alpha=args.est_alpha,
                   init_pkappa=args.initial_kappa_mean_precision, 
                   init_ptau=args.initial_tau_mean_precision,
                   burnin=args.burn_in_length, sample=args.gibbs_sample_number, 
                   thin=args.gibbs_thinning, 
+                  burnin_bk=args.burn_in_length_bk, sample_bk=args.gibbs_sample_number_bk,
                   MLE_CONV=args.Mstep_convergence_tol, MLE_maxiter=args.Mstep_maxiter, 
                   EM_CONV=args.EM_convergence_tol, EM_maxiter=args.EM_maxiter)
     (niter, elbo, converged, path_elbo) = myGEM.gem()

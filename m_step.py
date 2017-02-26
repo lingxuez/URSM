@@ -85,21 +85,6 @@ class LogitNormalMLE(object):
                     self.gd_coeffAinv[:, k] += (self.SCexpr[itype, :] * \
                             suff_stats["exp_S"][itype, :]).sum(axis=0)           
 
-                
-        # if self.hasSC: 
-            ## auxiliary u: (L, )
-            ## t(A)*S: L x N
-            # self.u = (np.transpose(self.A[:, self.G]) *\
-            #                        suff_stats["exp_S"]).sum(axis=1)
-            # ## Pre-calculate: unchanged across MLE iterations
-            # ## (sum_l Y_li S_li) / L, sum within cell type
-            # self.type_expr = np.zeros(self.A.shape, dtype=float)
-            # for k in xrange(self.K):
-            #   itype = self.itype[k]
-            #   self.type_expr[:, k] = (self.SCexpr[itype, :] * \
-            #               suff_stats["exp_S"][itype, :]).sum(axis=0)
-            #   self.type_expr[:, k] /= self.L  
-
 
     def opt_kappa_tau(self):
         """
@@ -135,11 +120,6 @@ class LogitNormalMLE(object):
         self.gd_coeffConst[:, k] = self.suff_stats["coeffA"][:, k] - \
                     ((self.suff_stats["exp_S"][itype,:] * \
                     (self.SCrd/self.u)[itype, np.newaxis]).sum(axis=0))
-        # ## sum_l S_il * R_l / u_l, where sum is within cell type
-        # for k in xrange(self.K):
-        #     itype = self.itype[k]
-        #     self.gd_coeffConst[:, k] -= ((self.suff_stats["exp_S"][itype,:] * \
-        #             (self.SCrd/self.u)[itype, np.newaxis]).sum(axis=0))
 
 
     def opt_A_u(self):
@@ -158,24 +138,6 @@ class LogitNormalMLE(object):
         for k in xrange(self.K):
             ## with single cell part, need coordinate descent
             if self.hasSC and len(self.itype[k]) > 0:
-                # (niter, converged) = (0, self.MLE_CONV+1)
-                # while (converged > (self.MLE_CONV/self.N) and niter < self.MLE_maxiter):
-                #     old_Ak = np.copy(self.A[:, k])
-                #     ## optimize A[:, k] using projected gradient descent 
-                #     self.opt_Ak(k, init_step)
-                #     print "Optimized A%d, elbo=%f" % (k, self.compute_elbo())
-
-                #     ## optimize auxiliary u
-                #     self.opt_u()
-                #     ## update coefficients based on new u
-                #     self.update_gd_coeffConst(k)
-                #     print "Updated grad coeff, elbo=%f" % (self.compute_elbo())
-
-                #     ## convergence
-                #     converged = np.linalg.norm(self.A[:, k] - old_Ak, 1)
-                #     niter += 1
-                #     old_Ak = np.copy(self.A[:, k])
-
                 niter = self.opt_Ak(k, init_step)
                 logging.debug("\t\tOptimized A%d in %d iterations", k, niter)
                 # logging.debug("\t\t\telbo=%f", self.compute_elbo())
@@ -187,53 +149,6 @@ class LogitNormalMLE(object):
                 self.A[:, k] = simplex_proj(self.A[:, k], self.min_A)
                 logging.debug("\t\tOptimized A%d with closed form solution", k)
                 # logging.debug("\t\t\telbo=%f", self.compute_elbo())
-
-
-
-    # def opt_A_fp(self):
-    #   """
-    #   Optimize the k-th column of A using fixed-point method
-    #   """
-    #   old_A = np.copy(self.A)
-    #   (converged, niter) = (self.MLE_CONV+1, 0)
-        
-    #   ## pre-calculate to avoid redundant computation
-    #   term_ratio = self.gd_coeffConst / self.gd_coeffA
-    #   avg_ratio = np.mean(term_ratio, axis=0)
-    #   avg_inv_coeffA = np.mean(1.0 / self.gd_coeffA, axis=0)
-
-    #   while (converged > self.MLE_CONV) and (niter < self.MLE_maxiter):
-            
-    #       ## first solve for the lagrangian parameter lamk
-    #       # term_Ainv = self.gd_coeffAinv / (old_A * self.gd_coeffA)
-    #       # lagrange = 1.0/self.N - np.mean(term_Ainv, axis=0) - avg_ratio
-    #       # lagrange /= avg_inv_coeffA 
-    #       # new_A = term_Ainv + term_ratio + lagrange[np.newaxis, :] / self.gd_coeffA
-
-    #       new_A = self.gd_coeffAinv/(old_A * self.gd_coeffA) + term_ratio
-    #       new_A = self.get_proj_A(new_A)
-
-    #       ## update
-    #       niter += 1
-    #       converged = np.linalg.norm(new_A - old_A, 1)
-    #       old_A = np.copy(new_A)
-
-    #   self.A = np.copy(new_A)
-    #   return niter
-
-    # def opt_A(self):
-    #     """
-    #     Optimize profile matrix A.
-    #     """
-    #     niters = np.zeros([self.K])
-    #     for k in xrange(self.K):
-    #         niters[k] = self.opt_Ak(k)
-
-    #     if self.hasSC:
-    #         ## update auxilliary
-    #         self.opt_u()
-
-    #     return niters
 
 
     def opt_Ak(self, k, init_step):
@@ -270,6 +185,7 @@ class LogitNormalMLE(object):
         while (converged > self.MLE_CONV) and (niter < self.MLE_maxiter):
             old_alpha = np.copy(self.alpha)
             ## pgradient descent
+            # print self.get_grad_alpha(self.alpha)
             self.alpha = self.backtracking(old_val=old_alpha, 
                     grad_func=lambda alpha: (-self.get_grad_alpha(alpha)), 
                     obj_func=lambda alpha: (-self.get_obj_alpha(alpha)),
@@ -282,7 +198,7 @@ class LogitNormalMLE(object):
             converged = np.linalg.norm(self.alpha - old_alpha)
 
         logging.debug("\t\tOptimized alpha in %s iterations", niter)
-        # logging.debug("\t\t\telbo=%.6f", self.compute_elbo())
+        logging.debug("\t\t\telbo=%.6f", self.compute_elbo())
 
         return niter
 

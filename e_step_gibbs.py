@@ -95,7 +95,7 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
         self.Z = np.zeros([self.M, self.N, self.K])
         ## add marker information if any
         if self.iMarkers is not None:
-            logging.debug("Z is initialized with Marker info.")
+            logging.debug("\t\tZ is initialized with Marker info.")
             for index in range(self.iMarkers.shape[0]):
                 (i, k) = self.iMarkers[index, :]
                 self.Z[:, i, k] = self.BKexpr[:, i]                    
@@ -139,6 +139,7 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
 
         self.draw_W_mean()
         self.draw_Z_mean()
+      
         
 
     def draw_Z(self):

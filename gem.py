@@ -76,7 +76,7 @@ class LogitNormalGEM(object):
                 init_A = None, min_A=1e-6, init_alpha = None, est_alpha=True, 
                 init_pkappa = None, init_ptau = None, 
                 burnin=200, sample=200, thin=1,
-                burnin_bk=10, sample_bk=20,
+                burnin_bk=50, sample_bk=5,
                 MLE_CONV=1e-6, MLE_maxiter=100,
                 EM_CONV=1e-3, EM_maxiter=100):
         """
@@ -227,6 +227,9 @@ class LogitNormalGEM(object):
         if self.hasBK: ## bulk parameters
             (self.M, self.N) = self.BKexpr.shape
             self.init_para_BK(init_alpha)
+            ## need this to initialize self.mle
+            self.init_pkappa = np.array([-1., 10.], dtype=float)
+            self.init_ptau = np.array([self.N, 0.1], dtype=float)
 
         self.init_para_A(init_A) ## profile matrix
 

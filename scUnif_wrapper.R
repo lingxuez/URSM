@@ -34,7 +34,8 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   init_A=NULL,  min_A=1e-6,
                   init_alpha=NULL, est_alpha=TRUE,
                   init_pkappa=NULL, init_ptau=NULL, ## mean and precision 
-                  burnin=20, sample=20, thin=1, ## for Gibbs sampling
+                  burnin=20, sample=20, thin=1, ## for SC Gibbs sampling
+                  burnin_bk=100, sample_bk=1, ## for BK e-step
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
                   MLE_maxiter=1, EM_maxiter=2,
                   verbose=1,
@@ -58,13 +59,21 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
   ## and record file names
   #########################
   arguments = list()
+
+  ## note that cell type and gene index in python are 0-indexed
+  if (!is.null(G)) {
+    G = G-1
+  }
+  if (!is.null(iMarkers)) {
+    iMarkers = iMarkers - 1
+  }
   
   arguments = c(arguments,
                 data_to_csv(BKexpr, data_dir, data_prefix, "bulk_expr_file"),
                 data_to_csv(SCexpr, data_dir, data_prefix, "single_cell_expr_file"),
                 ## note that cell type and gene index in python are 0-indexed
-                data_to_csv(G-1, data_dir, data_prefix, "single_cell_type_file"),
-                data_to_csv(iMarkers-1, data_dir, data_prefix, "iMarkers_file"),
+                data_to_csv(G, data_dir, data_prefix, "single_cell_type_file"),
+                data_to_csv(iMarkers, data_dir, data_prefix, "iMarkers_file"),
                 data_to_csv(init_A, data_dir, data_prefix, "initial_A_file"),
                 data_to_csv(init_alpha, data_dir, data_prefix, "initial_alpha_file"))
   
@@ -78,13 +87,16 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                    EM_maxiter=EM_maxiter, Mstep_maxiter=MLE_maxiter,
                    EM_convergence_tol=EM_CONV, Mstep_convergence_tol=MLE_CONV,
                    gibbs_thinning=thin, gibbs_sample_number=sample, burn_in_length=burnin,
+                   burn_in_length_bk = burnin_bk, gibbs_sample_number_bk=sample_bk,
                    number_of_cell_types=K, 
                    mininimal_A=min_A,
                    verbose_level=verbose)
   )
   
   ## several parameters need special handling to have the right format
-  arguments$estimate_alpha = c("False", "True")[est_alpha+1]
+  if (!est_alpha){
+    arguments$no_est_alpha = ""
+  }
   if (!is.null(init_pkappa)) {
     arguments$initial_kappa_mean_precision=paste(init_pkappa, collapse = " ")
   }
