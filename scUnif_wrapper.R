@@ -30,6 +30,7 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   data_prefix = "", ## prefix added to data files
                   
                   ## model parameters
+                  iMarkers = NULL,
                   init_A=NULL,  min_A=1e-6,
                   init_alpha=NULL, est_alpha=TRUE,
                   init_pkappa=NULL, init_ptau=NULL, ## mean and precision 
@@ -61,8 +62,9 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
   arguments = c(arguments,
                 data_to_csv(BKexpr, data_dir, data_prefix, "bulk_expr_file"),
                 data_to_csv(SCexpr, data_dir, data_prefix, "single_cell_expr_file"),
-                ## note that cell type in python is 0-indexed
+                ## note that cell type and gene index in python are 0-indexed
                 data_to_csv(G-1, data_dir, data_prefix, "single_cell_type_file"),
+                data_to_csv(iMarkers-1, data_dir, data_prefix, "iMarkers_file"),
                 data_to_csv(init_A, data_dir, data_prefix, "initial_A_file"),
                 data_to_csv(init_alpha, data_dir, data_prefix, "initial_alpha_file"))
   

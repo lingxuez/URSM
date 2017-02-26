@@ -21,8 +21,8 @@ demo-run:
 	-log demo/demo_out/demo_logging.log \
 	-verbose 2 \
 	-burnin 50 \
-	-sample 50 \
-	-EM_maxiter 10 -MLE_maxiter 100
+	-sample 100 \
+	-EM_maxiter 20 -MLE_maxiter 100
 
 demo-plot:
 	cd demo; python demo_plots.py

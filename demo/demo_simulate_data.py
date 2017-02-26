@@ -118,7 +118,7 @@ def simulate_sc(N, L, K, G, A, depths, tau, kappa, tau_sd, kappa_sd):
 ## simulate data
 ##############
 if __name__ == "__main__":
-    N = 50
+    N = 200
     sc_K = 3
     bk_K = 5
     L = 20

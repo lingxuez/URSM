@@ -82,7 +82,7 @@ class LogitNormalMLE(object):
                 itype = self.itype[k]
                 if len(itype) > 0:
                     self.update_gd_coeffConst(k)
-                    self.gd_coeffAinv[:, k] = (self.SCexpr[itype, :] * \
+                    self.gd_coeffAinv[:, k] += (self.SCexpr[itype, :] * \
                             suff_stats["exp_S"][itype, :]).sum(axis=0)           
 
                 
