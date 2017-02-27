@@ -118,11 +118,11 @@ def simulate_sc(N, L, K, G, A, depths, tau, kappa, tau_sd, kappa_sd):
 ## simulate data
 ##############
 if __name__ == "__main__":
-    N = 100
+    N = 200
     sc_K = 3
     bk_K = 5
-    L = 20
-    M = 50
+    L = 100
+    M = 150
     alpha = np.arange(1, bk_K+1)
     G = np.array([0]*5 + [1]*5 + [2]*(L-10))
     tau = 1.5*N
@@ -135,11 +135,11 @@ if __name__ == "__main__":
     anti_size=2
     A = simulate_A(N, K, anchor_size, anti_size)
 
-    bk_depths = [100*N] * M
+    bk_depths = np.random.poisson(50*N, M) # [50*N] * M
     (bk_expr, bk_W) = simulate_bulk(N, M, bk_K, alpha, A[:, :bk_K], bk_depths)
 
 
-    sc_depths = [10*N] * L
+    sc_depths = np.random.poisson(2*N, L) #[2*N] * L
     (sc_expr, sc_S) = simulate_sc(N, L, sc_K, G, A[:, :sc_K], 
                                 sc_depths, tau, kappa, tau_sd, kappa_sd)
 
