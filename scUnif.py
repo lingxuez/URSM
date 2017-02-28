@@ -75,6 +75,7 @@ def gem2csv(dirname, gem, prefix=""):
         mtx2csv(prefix + 'exp_S.csv', gem.suff_stats['exp_S'])
         mtx2csv(prefix + 'est_pkappa.csv', gem.pkappa)
         mtx2csv(prefix + 'est_ptau.csv', gem.ptau)
+        mtx2csv(prefix + 'est_omega.csv', gem.Gibbs_BK.w)
     if gem.hasBK:
         mtx2csv(prefix + 'est_alpha.csv', gem.alpha)
         mtx2csv(prefix + 'exp_W.csv', gem.suff_stats['exp_W'])
@@ -91,24 +92,6 @@ def load_from_file(filename, dtype=float, delimiter=","):
     else:
         return np.loadtxt(filename, dtype=dtype, delimiter=delimiter)
 
-# def load_anchor_genes(filename):
-#     """
-#     Load anchor genes from file. 
-#     Each line contains the indices of anchor genes for each cell type.
-#     Empty lines meaning no anchor gene is provided for that type.
-#     """
-#     if filename is None:
-#         return None
-
-#     with open(filename) as fin:
-#         lines = fin.read().splitlines()
-#         i_anchors = []
-#         for line in lines:
-#             if len(line) > 0:
-#                 i_anchors += [map(int,line.split(","))]
-#             else:
-#                 i_anchors += [[]]
-#     return i_anchors
 
 ###############
 ## read data from files

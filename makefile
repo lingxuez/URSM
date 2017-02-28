@@ -14,6 +14,8 @@ simulate:
 demo-run:
 	python scUnif.py \
 	-K 5 \
+	-sc demo/demo_data/demo_single_cell_rnaseq_counts.csv \
+	-ctype demo/demo_data/demo_single_cell_types.csv \
 	-bk demo/demo_data/demo_bulk_rnaseq_counts.csv \
 	-iMarkers demo/demo_data/demo_iMarkers.csv \
 	-init_A demo/demo_data/demo_init_A.csv \
@@ -21,9 +23,9 @@ demo-run:
 	-outdir demo/demo_out \
 	-log demo/demo_out/demo_logging.log \
 	-verbose 1 \
-	-burnin 50 -sample 50 \
-	-burnin_bk 1 -sample_bk 1 \
-	-EM_maxiter 50 -MLE_maxiter 500
+	-burnin 100 -sample 100 \
+	-burnin_bk 0 -sample_bk 1 \
+	-EM_maxiter 10 -MLE_maxiter 500
 
 
 test:
@@ -37,7 +39,7 @@ test:
 	-log test_out/demo_logging.log \
 	-verbose 2 \
 	-burnin 50 -sample 50 \
-	-burnin_bk 50 -sample_bk 1 \
+	-burnin_bk 0 -sample_bk 1 \
 	-min_A 1e-10 \
 	-EM_maxiter 10 -MLE_maxiter 500
 

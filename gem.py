@@ -117,6 +117,8 @@ class LogitNormalGEM(object):
         self.K, self.min_A, self.est_alpha = K, min_A, est_alpha
         self.EM_CONV, self.EM_maxiter = EM_CONV, EM_maxiter
         self.burnin_bk, self.sample_bk = burnin_bk, sample_bk
+        self.burnin, self.sample, self.thin = burnin, sample, thin
+        self.MLE_CONV, self.MLE_maxiter = MLE_CONV, MLE_maxiter
         self.SCexpr, self.G, self.BKexpr = SCexpr, G, BKexpr
         self.iMarkers = iMarkers
 
@@ -128,8 +130,6 @@ class LogitNormalGEM(object):
             self.itype = None
  
         self.init_para(init_A, init_pkappa, init_ptau, init_alpha)
-        self.init_gibbs(burnin, sample, thin)
-        self.init_mle(MLE_CONV, MLE_maxiter)
 
 
     def estep_gibbs(self):
@@ -170,6 +170,11 @@ class LogitNormalGEM(object):
         old_elbo = -10**6
         path_elbo = np.array([])
 
+        ## initialize
+        self.init_gibbs()
+        self.init_mle()
+
+        ## gem
         while (abs(converged) > self.EM_CONV) and (niter < self.EM_maxiter):
             logging.info("%d-th EM iteration started...", niter+1)
             ## E-step: gibbs sampling and record suff stats
@@ -185,6 +190,8 @@ class LogitNormalGEM(object):
                 self.mle.opt_kappa_tau()
                 self.pkappa = self.mle.pkappa
                 self.ptau = self.mle.ptau
+                logging.debug("\t\tptau = (%.f, %.f)", self.ptau[0], self.ptau[1])
+
             if self.hasBK and self.est_alpha:
                 niter_alpha = self.mle.opt_alpha()
                 self.alpha = self.mle.alpha
@@ -207,14 +214,14 @@ class LogitNormalGEM(object):
         return (niter, elbo, converged, path_elbo)
 
 
-    def init_mle(self, MLE_CONV, MLE_maxiter):
+    def init_mle(self):
         """Initialize the class for M-step"""
         self.mle = LogitNormalMLE(BKexpr=self.BKexpr, SCexpr=self.SCexpr,
                 G=self.G, K=self.K, itype=self.itype,
                 hasBK=self.hasBK, hasSC=self.hasSC,
                 init_A = self.init_A, init_alpha = self.init_alpha,
                 init_pkappa = self.init_pkappa, init_ptau=self.init_ptau,
-                min_A=self.min_A, MLE_CONV=MLE_CONV, MLE_maxiter=MLE_maxiter)
+                min_A=self.min_A, MLE_CONV=self.MLE_CONV, MLE_maxiter=self.MLE_maxiter)
 
 
     def init_para(self, init_A, init_pkappa, init_ptau, init_alpha):
@@ -292,19 +299,19 @@ class LogitNormalGEM(object):
         self.alpha = np.copy(self.init_alpha)
 
 
-    def init_gibbs(self, burnin, sample, thin):
+    def init_gibbs(self):
         """Initialize Gibbs sampler"""
-        (self.burnin, self.sample, self.thin) = (burnin, sample, thin)
-
         if self.hasSC:
             self.Gibbs_SC = LogitNormalGibbs_SC(A=self.init_A, 
                     pkappa=self.init_pkappa, ptau=self.init_ptau, 
                     SCexpr=self.SCexpr, G=self.G, itype=self.itype)
+            self.Gibbs_SC.init_gibbs()
 
         if self.hasBK:
             self.Gibbs_BK =  LogitNormalGibbs_BK(A=self.init_A, 
                     alpha=self.init_alpha, BKexpr=self.BKexpr,
                     iMarkers=self.iMarkers)
+            self.Gibbs_BK.init_gibbs()
 
 
 
