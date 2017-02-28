@@ -102,9 +102,9 @@ class LogitNormalGEM(object):
             est_alpha: boolean, if "True" then the em-algorithm estimates alpha,
                     otherwise the algorithm takes "init_alpha" as a fixed prior.
             init_pkappa: (optional) 2-by-1 vector, the initial value of the 
-                    mean and precision in the Normal prior for kappa.
+                    mean and variance in the Normal prior for kappa.
             init_ptau: (optional) 2-by-1 vector, the initial value of the mean and 
-                    precision in the Normal prior for tau.
+                    variance in the Normal prior for tau.
             burin: an integer specifying the burn-in length in Gibbs sampling.
             sample: an integer specifying the number of Gibbs samples to keep.
             thin: an integer specifying the thinning steps in Gibbs sampling.
@@ -235,8 +235,8 @@ class LogitNormalGEM(object):
             (self.M, self.N) = self.BKexpr.shape
             self.init_para_BK(init_alpha)
             ## need this to initialize self.mle
-            self.init_pkappa = np.array([-1., 10.], dtype=float)
-            self.init_ptau = np.array([self.N, 0.1], dtype=float)
+            self.init_pkappa = np.array([-1., 0.01], dtype=float)
+            self.init_ptau = np.array([self.N, 0.01*self.N], dtype=float)
 
         self.init_para_A(init_A) ## profile matrix
 
@@ -280,12 +280,12 @@ class LogitNormalGEM(object):
         if (init_pkappa is not None) and (len(init_pkappa)==2):
             self.init_pkappa = init_pkappa
         else:
-            self.init_pkappa = np.array([-1., 10.], dtype=float)
+            self.init_pkappa = np.array([-1., 0.01], dtype=float)
 
         if (init_ptau is not None) and (len(init_ptau)==2):
             self.init_ptau = init_ptau
         else:
-            self.init_ptau = np.array([300., 0.1], dtype=float)
+            self.init_ptau = np.array([self.N, 0.01*self.N], dtype=float)
         self.pkappa = np.copy(self.init_pkappa)
         self.ptau = np.copy(self.init_ptau)
 

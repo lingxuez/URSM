@@ -23,9 +23,9 @@ demo-run:
 	-outdir demo/demo_out \
 	-log demo/demo_out/demo_logging.log \
 	-verbose 1 \
-	-burnin 100 -sample 100 \
+	-burnin 50 -sample 50 \
 	-burnin_bk 0 -sample_bk 1 \
-	-EM_maxiter 10 -MLE_maxiter 500
+	-EM_maxiter 5 -MLE_maxiter 500
 
 
 test:

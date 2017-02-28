@@ -18,7 +18,7 @@ class LogitNormalMLE(object):
                 hasBK=True, hasSC=True, ## model specification
                 init_A = None, ## N-by-K, initial value for A
                 init_alpha = None, ## K-by-1, initial value for alpha
-                init_pkappa = None, init_ptau = None, ## 2-by-1, mean and 1/var
+                init_pkappa = None, init_ptau = None, ## 2-by-1, mean and var
                 min_A=1e-6, ## minimal value of A; must be positive
                 min_alpha=1, ## minimum value of alpha
                 MLE_CONV=1e-4, MLE_maxiter=100
@@ -96,8 +96,8 @@ class LogitNormalMLE(object):
         kappa_var = np.mean(self.suff_stats["exp_kappasq"]) - kappa_mean**2
         tau_var = np.mean(self.suff_stats["exp_tausq"]) - tau_mean**2
 
-        self.pkappa = np.array([kappa_mean, 1.0/kappa_var])
-        self.ptau = np.array([tau_mean, 1.0/tau_var])
+        self.pkappa = np.array([kappa_mean, kappa_var])
+        self.ptau = np.array([tau_mean, tau_var])
 
         # logging.debug("\t\toptimized kappa_tau, elbo=%.6f", self.compute_elbo())
 
@@ -304,13 +304,13 @@ class LogitNormalMLE(object):
             ## an extra term for u
             elbo -= np.sum(self.SCrd * np.log(self.u))
             ## other terms involving pkappa, ptau
-            elbo += np.log(self.pkappa[1]*self.ptau[1]) * self.L / 2.0
+            elbo -= np.log(self.pkappa[1]*self.ptau[1]) * self.L / 2.0
             elbo -= (np.sum(self.suff_stats["exp_kappasq"]) - \
                     2 * self.pkappa[0] * np.sum(self.suff_stats["exp_kappa"]) + \
-                    self.L * (self.pkappa[0]**2)) * self.pkappa[1] / 2.0
+                    self.L * (self.pkappa[0]**2)) / (2.0 * self.pkappa[1])
             elbo -= (np.sum(self.suff_stats["exp_tausq"]) - \
                     2 * self.ptau[0] * np.sum(self.suff_stats["exp_tau"]) + \
-                    self.L * (self.ptau[0]**2)) * self.ptau[1] / 2.0 
+                    self.L * (self.ptau[0]**2))  / (2.0 * self.ptau[1]) 
 
         elbo /= self.N
 

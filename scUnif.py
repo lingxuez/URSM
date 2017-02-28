@@ -75,7 +75,7 @@ def gem2csv(dirname, gem, prefix=""):
         mtx2csv(prefix + 'exp_S.csv', gem.suff_stats['exp_S'])
         mtx2csv(prefix + 'est_pkappa.csv', gem.pkappa)
         mtx2csv(prefix + 'est_ptau.csv', gem.ptau)
-        mtx2csv(prefix + 'est_omega.csv', gem.Gibbs_BK.w)
+        mtx2csv(prefix + 'est_omega.csv', gem.Gibbs_SC.w)
     if gem.hasBK:
         mtx2csv(prefix + 'est_alpha.csv', gem.alpha)
         mtx2csv(prefix + 'exp_W.csv', gem.suff_stats['exp_W'])
@@ -112,9 +112,9 @@ if __name__ == "__main__":
     # parser.add_argument("-est_alpha", "--estimate_alpha", type=bool, default=False)
     parser.add_argument('-no_est_alpha', '--no_est_alpha', dest='est_alpha', action='store_false')
     parser.set_defaults(est_alpha=True)
-    parser.add_argument("-pkappa", "--initial_kappa_mean_precision", nargs=2, type=float, 
+    parser.add_argument("-pkappa", "--initial_kappa_mean_var", nargs=2, type=float, 
                             action='store', default=None)
-    parser.add_argument("-ptau", "--initial_tau_mean_precision", nargs=2, type=float, 
+    parser.add_argument("-ptau", "--initial_tau_mean_var", nargs=2, type=float, 
                             action='store', default=None)
     parser.add_argument("-burnin", "--burn_in_length", type=int, default=200)
     parser.add_argument("-sample", "--gibbs_sample_number", type=int, default=200)
@@ -220,8 +220,8 @@ if __name__ == "__main__":
                   iMarkers=iMarkers,
                   init_A=init_A, min_A=args.mininimal_A,
                   init_alpha=init_alpha, est_alpha=args.est_alpha,
-                  init_pkappa=args.initial_kappa_mean_precision, 
-                  init_ptau=args.initial_tau_mean_precision,
+                  init_pkappa=args.initial_kappa_mean_var, 
+                  init_ptau=args.initial_tau_mean_var,
                   burnin=args.burn_in_length, sample=args.gibbs_sample_number, 
                   thin=args.gibbs_thinning, 
                   burnin_bk=args.burn_in_length_bk, sample_bk=args.gibbs_sample_number_bk,

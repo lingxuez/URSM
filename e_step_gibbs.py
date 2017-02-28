@@ -355,20 +355,32 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         """kappa, tau: scalars that defines psi"""
         for l in xrange(self.L):
             A_curr = self.A[:, self.G[l]]
-            ## precision matrix
-            offdiag = sum(self.w[l, :] * A_curr)
-            diag = [sum(self.w[l, :]) + self.pkappa[1],
-                sum(self.w[l, :] * np.square(A_curr)) + self.ptau[1]]
-            PP = np.array([[diag[0], offdiag], [offdiag, diag[1]]])
+            # ## precision matrix
+            # offdiag = sum(self.w[l, :] * A_curr)
+            # diag = [sum(self.w[l, :]) + self.pkappa[1],
+            #     sum(self.w[l, :] * np.square(A_curr)) + self.ptau[1]]
+            # PP = np.array([[diag[0], offdiag], [offdiag, diag[1]]])
 
-            ## PP * mP = bP: solve for the mean vector mP
+            # ## PP * mP = bP: solve for the mean vector mP
+            # bP = np.array([sum(self.S[l,:]) - self.N/2.0 +\
+            #                     self.pkappa[0]*self.pkappa[1],
+            #                 self.sum_AS[l] - 0.5 + \
+            #                     self.ptau[0]*self.ptau[1]])
+            # mP = np.linalg.solve(PP, bP)
+
+            # ## draw (kappa, tau) ~ Gaussian(mP, PP^-1)
+            # newdraw = np.random.multivariate_normal(mP, np.linalg.inv(PP))
+
+            ## compute the covariance matrix
+            offdiag = - sum(self.w[l, :] * A_curr)
+            diag = [sum(self.w[l, :] * np.square(A_curr)) + 1.0 / self.ptau[1],
+                    sum(self.w[l, :]) + 1.0 / self.pkappa[1]]
+            sigma_mat = np.array([[diag[0], offdiag], [offdiag, diag[1]]])
             bP = np.array([sum(self.S[l,:]) - self.N/2.0 +\
-                                self.pkappa[0]*self.pkappa[1],
-                            self.sum_AS[l] - 0.5 + \
-                                self.ptau[0]*self.ptau[1]])
-            mP = np.linalg.solve(PP, bP)
-
-            ## draw (kappa, tau) ~ Gaussian(mP, PP^-1)
-            newdraw = np.random.multivariate_normal(mP, np.linalg.inv(PP))
+                                 self.pkappa[0] / self.pkappa[1],
+                             self.sum_AS[l] - 0.5 + \
+                                 self.ptau[0] / self.ptau[1]])
+            mP = np.dot(sigma_mat, bP)
+            newdraw = np.random.multivariate_normal(mP, sigma_mat)
             (self.kappa[0, l], self.tau[0, l]) = newdraw
 

@@ -33,7 +33,7 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   iMarkers = NULL,
                   init_A=NULL,  min_A=1e-6,
                   init_alpha=NULL, est_alpha=TRUE,
-                  init_pkappa=NULL, init_ptau=NULL, ## mean and precision 
+                  init_pkappa=NULL, init_ptau=NULL, ## mean and variance 
                   burnin=20, sample=20, thin=1, ## for SC Gibbs sampling
                   burnin_bk=100, sample_bk=1, ## for BK e-step
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
@@ -98,10 +98,10 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
     arguments$no_est_alpha = ""
   }
   if (!is.null(init_pkappa)) {
-    arguments$initial_kappa_mean_precision=paste(init_pkappa, collapse = " ")
+    arguments$initial_kappa_mean_var=paste(init_pkappa, collapse = " ")
   }
   if (!is.null(init_ptau)) {
-    arguments$initial_tau_mean_precision=paste(init_ptau, collapse = " ")
+    arguments$initial_tau_mean_var=paste(init_ptau, collapse = " ")
   }
   
   
