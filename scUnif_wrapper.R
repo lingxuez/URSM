@@ -35,7 +35,7 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                   init_alpha=NULL, est_alpha=TRUE,
                   init_pkappa=NULL, init_ptau=NULL, ## mean and variance 
                   burnin=20, sample=20, thin=1, ## for SC Gibbs sampling
-                  burnin_bk=100, sample_bk=1, ## for BK e-step
+                  bk_mean_approx=TRUE, ## whether use mean-gibbs updates for BK e-step
                   MLE_CONV=1e-3, EM_CONV=1e-3, 
                   MLE_maxiter=1, EM_maxiter=2,
                   verbose=1,
@@ -87,7 +87,6 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
                    EM_maxiter=EM_maxiter, Mstep_maxiter=MLE_maxiter,
                    EM_convergence_tol=EM_CONV, Mstep_convergence_tol=MLE_CONV,
                    gibbs_thinning=thin, gibbs_sample_number=sample, burn_in_length=burnin,
-                   burn_in_length_bk = burnin_bk, gibbs_sample_number_bk=sample_bk,
                    number_of_cell_types=K, 
                    mininimal_A=min_A,
                    verbose_level=verbose)
@@ -96,6 +95,11 @@ PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/s
   ## several parameters need special handling to have the right format
   if (!est_alpha){
     arguments$no_est_alpha = ""
+  }
+  if (bk_mean_approx) {
+    arguments$mean_approx = ""
+  } else {
+    arguments$no_mean_approx = ""
   }
   if (!is.null(init_pkappa)) {
     arguments$initial_kappa_mean_var=paste(init_pkappa, collapse = " ")
