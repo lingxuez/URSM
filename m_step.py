@@ -71,7 +71,7 @@ class LogitNormalMLE(object):
             
 
         if self.hasSC:
-            self.elbo_const += suff_stats["sc_exp_elbo_const"]
+            self.elbo_const += suff_stats["exp_elbo_const"]
             ## the auxilliary parameter u
             self.opt_u()
             ## E[sum_l (- tau_l^2 * w_il)] where sum is within cell type

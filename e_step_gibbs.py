@@ -9,62 +9,11 @@ from scipy import special
 import pypolyagamma as ppg
 import os
 
-#######################
-## A base class for Gibbs sampling
-########################
-class LogitNormalGibbs_base(object):
-
-    def __init__(self, parameters):
-        self.init_gibbs()
-        pass
-
-    def init_gibbs(self):
-        """initialize values of random variables"""
-        pass
-
-    def init_suffStats(self):
-        """initialize sufficient statistics"""
-        pass
-
-    def update_suffStats(self, sample):
-        """update sufficient stats using current values of latent variables"""
-        pass
-
-    def update_parameters(self, parameters):
-        """update parameters"""
-        pass
-
-    def gibbs_cycle(self):
-        """perform one cycle of Gibbs sampling"""
-        pass
-
-    def gibbs(self, burnin=100, sample=100, thin=1):
-        """Gibbs sampling cycle"""
-        ## initialize sufficient statistics
-        self.init_suffStats()        
-        
-        # isample = 0
-        ## burnin period
-        # logging.debug("\t\tBurnin period: %s samples..." % burnin)
-        for giter in xrange(burnin):
-            self.gibbs_cycle()
-
-        ## sampling
-        # logging.debug("\t\tBurnin finished. Gibbs sampling started...")
-        for giter in xrange(sample*thin):
-            self.gibbs_cycle()
-            if giter % thin == 0:
-                ## update sufficient statistics
-                self.update_suffStats(sample)
-                # isample += 1
-                # if (isample % 50 == 0):
-                    # logging.debug("\t\t\t%s/%s finished.", isample, sample)
-
 
 #######################
 ## Gibbs sampler for bulk data
 #######################
-class LogitNormalGibbs_BK(LogitNormalGibbs_base):
+class LogitNormalGibbs_BK(object):
 
     ## constructor: initialize with parameters
     def __init__(self, 
@@ -107,22 +56,23 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
     def init_suffStats(self):
         """initialize sufficient statistics"""
         ## E[mean_j Z_jik] and E[mean_j log W_kj]
-        self.exp_Zik = np.zeros([self.N, self.K], dtype=float)
-        self.exp_Zjk = np.zeros([self.M, self.K], dtype=float)
-        self.exp_logW = np.zeros([self.K, self.M], dtype=float)
-        self.exp_W = np.zeros([self.K, self.M], dtype=float)
+        self.suff_stats = {} ## sufficient statistics
+        self.suff_stats["exp_Zik"] = np.zeros([self.N, self.K], dtype=float)
+        self.suff_stats["exp_Zjk"] = np.zeros([self.M, self.K], dtype=float)
+        self.suff_stats["exp_logW"] = np.zeros([self.K, self.M], dtype=float)
+        self.suff_stats["exp_W"] = np.zeros([self.K, self.M], dtype=float)
 
 
     def update_suffStats(self, sample):
         """update sufficient stats using current values of latent variables"""
         ## E[sum_j Z_jik]
-        self.exp_Zik += (self.Z).sum(axis=0) / float(sample)
+        self.suff_stats["exp_Zik"] += (self.Z).sum(axis=0) / float(sample)
         ## E[sum_i Z_jik]
-        self.exp_Zjk += (self.Z).sum(axis=1) / float(sample)
+        self.suff_stats["exp_Zjk"] += (self.Z).sum(axis=1) / float(sample)
         ## E[mean_j log W_kj]
-        self.exp_logW += np.log(self.W) / float(sample)
+        self.suff_stats["exp_logW"] += np.log(self.W) / float(sample)
         ## E[W]
-        self.exp_W += self.W / float(sample)
+        self.suff_stats["exp_W"] += self.W / float(sample)
 
 
     def update_parameters(self, A, alpha):
@@ -134,20 +84,46 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
     #########################
     ## draw Gibbs samples
     #########################
+    def gibbs(self, burnin=100, sample=100, thin=1, mean_approx=True):
+        """Gibbs sampling cycle"""
+        ## initialize sufficient statistics
+        self.init_suffStats()  
+
+        if mean_approx:
+            ## use one-step update for W based on expectation
+            ## this is equivalent to NMF algorithm
+            logging.debug("\tE-step (one-step mean-update) for bulk samples started.")
+            ## do not re-initialize W; use the value from last iteration.
+            ## only update W once.
+            self.get_nmf_W()
+            self.draw_Z_mean()
+            self.update_suffStats(sample=1)
+
+        else:
+            ## use the proper gibbs sampling
+            logging.debug("\tE-step for bulk samples started.")
+            ## burn in
+            for giter in xrange(burnin):
+                self.gibbs_cycle()
+
+            ## sampling
+            for giter in xrange(sample*thin):
+                self.gibbs_cycle()
+                if giter % thin == 0:
+                    ## update sufficient statistics
+                    self.update_suffStats(sample)
+
+
+    
     def gibbs_cycle(self):
-        """perform one cycle of Gibbs sampling"""
-        ## draw W first because Z is carefully initialized with marker info
-        # self.draw_W()
-        # self.draw_Z()
-
-        ## iteratively compute the means
-        # self.draw_W_mean()
-        # self.draw_Z_mean()
-
-        ## or we can directly compute the solution as in ssKL!
-        # self.draw_W_mean()
-        self.get_nmf_W()
-        self.draw_Z_mean()
+        """
+        perform one cycle of Gibbs sampling.
+        use one-step update for W based on expectation
+        this is equivalent to NMF algorithm
+        """
+        ## draw W first because Z may be carefully initialized with marker info
+        self.draw_W()
+        self.draw_Z()
   
 
     def draw_Z(self):
@@ -175,12 +151,11 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
                 pval = self.W[:, j]*self.A[i, :]
                 self.Z[j, i, :] = pval * self.BKexpr[j, i] /self.AW[i, j]
 
-
-    def draw_W_mean(self):
-        """W: K x M, proportions"""
-        post_alpha = self.Z.sum(axis=1)
-        self.W = post_alpha.transpose() + self.alpha[:, np.newaxis]
-        self.W /= self.W.sum(axis=0)[np.newaxis, :]
+    # def draw_W_mean(self):
+    #     """W: K x M, proportions"""
+    #     post_alpha = self.Z.sum(axis=1)
+    #     self.W = post_alpha.transpose() + self.alpha[:, np.newaxis]
+    #     self.W /= self.W.sum(axis=0)[np.newaxis, :]
 
 
     def get_nmf_W(self):
@@ -197,7 +172,7 @@ class LogitNormalGibbs_BK(LogitNormalGibbs_base):
 #######################
 ## Gibbs sampler for single cell
 #######################
-class LogitNormalGibbs_SC(LogitNormalGibbs_base):
+class LogitNormalGibbs_SC(object):
 
     ## constructor: initialize with parameters
     def __init__(self, 
@@ -238,7 +213,7 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         return [ppg.PyPolyaGamma(seed) for seed in seeds]
 
 
-    def init_gibbs(self, keepChain=False):
+    def init_gibbs(self):
         """initialize latent variable values"""
         self.kappa = np.full([1,self.L], self.pkappa[0], dtype=float)
         self.tau = np.full([1,self.L], self.ptau[0], dtype=float)
@@ -256,34 +231,33 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
 
     def init_suffStats(self):
         """initialize sufficient statistics to be zeros"""
+        self.suff_stats = {}
         ## posterior expectations
-        self.exp_S = np.zeros([self.L, self.N], dtype=float) ## E[S]
-        self.exp_kappa = np.zeros([1, self.L], dtype=float) ## E[kappa]
-        self.exp_tau = np.zeros([1, self.L], dtype=float) ## E[tau]
-        self.exp_kappasq = np.zeros([1, self.L], dtype=float) ## E[kappa^2]
-        self.exp_tausq = np.zeros([1, self.L], dtype=float) ## E[tau^2]
+        self.suff_stats["exp_S"] = np.zeros([self.L, self.N], dtype=float) ## E[S]
+        self.suff_stats["exp_kappa"] = np.zeros([1, self.L], dtype=float) ## E[kappa]
+        self.suff_stats["exp_tau"] = np.zeros([1, self.L], dtype=float) ## E[tau]
+        self.suff_stats["exp_kappasq"] = np.zeros([1, self.L], dtype=float) ## E[kappa^2]
+        self.suff_stats["exp_tausq"] = np.zeros([1, self.L], dtype=float) ## E[tau^2]
         ## part of coefficient for A: E[tau_l*(S_il-0.5) - kappa_l*tau_l*w_il]
-        self.coeffA = np.zeros([self.N, self.K], dtype=float)
+        self.suff_stats["coeffA"] = np.zeros([self.N, self.K], dtype=float)
         ## coefficient for A^2: E[- tau_l^2 * w_il]
-        self.coeffAsq = np.zeros([self.N, self.K], dtype=float)
+        self.suff_stats["coeffAsq"] = np.zeros([self.N, self.K], dtype=float)
         ## elbo that doesn't involve A
-        self.exp_elbo_const = 0
+        self.suff_stats["exp_elbo_const"] = 0
 
 
     def update_suffStats(self, sample):
         """Update sufficient stats using current values of latent variables"""
-        self.exp_S = np.add(self.exp_S, self.S / float(sample), out=self.exp_S)
-        self.exp_kappa = np.add(self.exp_kappa, self.kappa / sample, out=self.exp_kappa)
-        self.exp_tau = np.add(self.exp_tau, self.tau / sample, out=self.exp_tau)
-        self.exp_kappasq = np.add(self.exp_kappasq, np.square(self.kappa) / sample,
-                                out=self.exp_kappasq)
-        self.exp_tausq = np.add(self.exp_tausq, np.square(self.tau) / sample,
-                                out=self.exp_tausq)
+        self.suff_stats["exp_S"] += self.S / float(sample)
+        self.suff_stats["exp_kappa"] += self.kappa / sample
+        self.suff_stats["exp_tau"] += self.tau / sample
+        self.suff_stats["exp_kappasq"] += np.square(self.kappa) / sample
+        self.suff_stats["exp_tausq"] += np.square(self.tau) / sample
 
         ## sum_il E[- kappa_l^2 * w_il/2 + (S_il-0.5)*kappa_l ] 
-        self.exp_elbo_const += (-self.w * \
+        self.suff_stats["exp_elbo_const"] += (-self.w * \
                 np.transpose(np.square(self.kappa))).sum() / (2.0*sample)
-        self.exp_elbo_const += ((self.S - 0.5) * np.transpose(self.kappa)).sum()/ \
+        self.suff_stats["exp_elbo_const"] += ((self.S - 0.5) * np.transpose(self.kappa)).sum()/ \
                                     (sample)
 
         ## E[tau_l*(S_il-0.5) - kappa_l*tau_l*w_il]
@@ -294,9 +268,9 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
         ## sum over l, mean over gibbs samples
         for k in xrange(self.K):
             if len(self.itype[k]) > 0:
-                self.coeffA[:, k] += coeffA[self.itype[k],:].sum(axis=0) / \
+                self.suff_stats["coeffA"][:, k] += coeffA[self.itype[k],:].sum(axis=0) / \
                                                          float(sample)
-                self.coeffAsq[:, k] += coeffAsq[self.itype[k],:].sum(axis=0) / \
+                self.suff_stats["coeffAsq"][:, k] += coeffAsq[self.itype[k],:].sum(axis=0) / \
                                                          float(sample)
 
 
@@ -313,6 +287,27 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
     #########################
     ## draw Gibbs samples
     #########################
+    def gibbs(self, burnin=100, sample=100, thin=1):
+        """Gibbs sampling cycle"""
+        logging.debug("\tE-step for single cells started.")
+
+        ## initialize sufficient statistics
+        self.init_suffStats()   
+        ## re-start gibbs chain
+        self.init_gibbs     
+        
+        ## burnin
+        for giter in xrange(burnin):
+            self.gibbs_cycle()
+
+        ## sampling
+        for giter in xrange(sample*thin):
+            self.gibbs_cycle()
+            if giter % thin == 0:
+                ## update sufficient statistics
+                self.update_suffStats(sample)
+
+
     def gibbs_cycle(self):
         """One cycle through latent variables in Gibbs sampling"""
         self.draw_w()
@@ -372,10 +367,11 @@ class LogitNormalGibbs_SC(LogitNormalGibbs_base):
             # newdraw = np.random.multivariate_normal(mP, np.linalg.inv(PP))
 
             ## compute the covariance matrix
-            offdiag = - sum(self.w[l, :] * A_curr)
-            diag = [sum(self.w[l, :] * np.square(A_curr)) + 1.0 / self.ptau[1],
-                    sum(self.w[l, :]) + 1.0 / self.pkappa[1]]
-            sigma_mat = np.array([[diag[0], offdiag], [offdiag, diag[1]]])
+            offdiag = sum(self.w[l, :] * A_curr)
+            diag = [sum(self.w[l, :]) + 1.0 / self.pkappa[1],
+                    sum(self.w[l, :] * np.square(A_curr)) + 1.0 / self.ptau[1]]
+            det = diag[0] * diag[1] - offdiag * offdiag
+            sigma_mat = np.array([[diag[1], -offdiag], [-offdiag, diag[0]]]) / det
             bP = np.array([sum(self.S[l,:]) - self.N/2.0 +\
                                  self.pkappa[0] / self.pkappa[1],
                              self.sum_AS[l] - 0.5 + \

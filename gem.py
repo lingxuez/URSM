@@ -75,8 +75,7 @@ class LogitNormalGEM(object):
     def __init__(self, BKexpr=None, SCexpr=None, K=3, G=None, iMarkers=None,
                 init_A = None, min_A=1e-6, init_alpha = None, est_alpha=True, 
                 init_pkappa = None, init_ptau = None, 
-                burnin=200, sample=200, thin=1,
-                burnin_bk=50, sample_bk=5,
+                burnin=200, sample=200, thin=1, bk_mean_approx=True,
                 MLE_CONV=1e-6, MLE_maxiter=100,
                 EM_CONV=1e-3, EM_maxiter=100):
         """
@@ -114,14 +113,15 @@ class LogitNormalGEM(object):
             EL_maxiter: the maximal number of interations in the EM-algorithm.
         """
         self.hasBK, self.hasSC = BKexpr is not None, SCexpr is not None
-        self.K, self.min_A, self.est_alpha = K, min_A, est_alpha
-        self.EM_CONV, self.EM_maxiter = EM_CONV, EM_maxiter
-        self.burnin_bk, self.sample_bk = burnin_bk, sample_bk
-        self.burnin, self.sample, self.thin = burnin, sample, thin
-        self.MLE_CONV, self.MLE_maxiter = MLE_CONV, MLE_maxiter
         self.SCexpr, self.G, self.BKexpr = SCexpr, G, BKexpr
+        self.K, self.min_A, self.est_alpha = K, min_A, est_alpha
         self.iMarkers = iMarkers
 
+        self.EM_CONV, self.EM_maxiter = EM_CONV, EM_maxiter
+        self.MLE_CONV, self.MLE_maxiter = MLE_CONV, MLE_maxiter
+        self.burnin, self.sample, self.thin = burnin, sample, thin
+        self.bk_mean_approx = bk_mean_approx
+        
         if self.hasSC:
             self.itype = [] ## cell ids in each type
             for k in xrange(self.K):
@@ -137,32 +137,30 @@ class LogitNormalGEM(object):
         self.suff_stats = {} ## sufficient statistics
 
         if self.hasSC:
-            logging.debug("\tE-step for single cells started.")
-
             self.Gibbs_SC.update_parameters(self.A, self.pkappa, self.ptau)
             self.Gibbs_SC.gibbs(burnin=self.burnin, sample=self.sample, 
                 thin=self.thin)
+            self.suff_stats.update(self.Gibbs_SC.suff_stats)
 
-            self.suff_stats["exp_S"] = self.Gibbs_SC.exp_S
-            self.suff_stats["exp_kappa"] = self.Gibbs_SC.exp_kappa
-            self.suff_stats["exp_tau"] = self.Gibbs_SC.exp_tau
-            self.suff_stats["exp_kappasq"] = self.Gibbs_SC.exp_kappasq
-            self.suff_stats["exp_tausq"] = self.Gibbs_SC.exp_tausq
-            self.suff_stats["coeffA"] = self.Gibbs_SC.coeffA
-            self.suff_stats["coeffAsq"] = self.Gibbs_SC.coeffAsq
-            self.suff_stats["sc_exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
+            # self.suff_stats["exp_S"] = self.Gibbs_SC.exp_S
+            # self.suff_stats["exp_kappa"] = self.Gibbs_SC.exp_kappa
+            # self.suff_stats["exp_tau"] = self.Gibbs_SC.exp_tau
+            # self.suff_stats["exp_kappasq"] = self.Gibbs_SC.exp_kappasq
+            # self.suff_stats["exp_tausq"] = self.Gibbs_SC.exp_tausq
+            # self.suff_stats["coeffA"] = self.Gibbs_SC.coeffA
+            # self.suff_stats["coeffAsq"] = self.Gibbs_SC.coeffAsq
+            # self.suff_stats["sc_exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
 
         if self.hasBK:
-            logging.debug("\tE-step for bulk samples started.")
-
             self.Gibbs_BK.update_parameters(self.A, self.alpha)
-            self.Gibbs_BK.gibbs(burnin=self.burnin_bk, sample=self.sample_bk,
-                thin=self.thin)
+            self.Gibbs_BK.gibbs(burnin=self.burnin, sample=self.sample,
+                thin=self.thin, mean_approx=self.bk_mean_approx)
+            self.suff_stats.update(self.Gibbs_BK.suff_stats)
 
-            self.suff_stats["exp_Zik"] = self.Gibbs_BK.exp_Zik
-            self.suff_stats["exp_Zjk"] = self.Gibbs_BK.exp_Zjk
-            self.suff_stats["exp_W"] = self.Gibbs_BK.exp_W
-            self.suff_stats["exp_logW"] = self.Gibbs_BK.exp_logW
+            # self.suff_stats["exp_Zik"] = self.Gibbs_BK.exp_Zik
+            # self.suff_stats["exp_Zjk"] = self.Gibbs_BK.exp_Zjk
+            # self.suff_stats["exp_W"] = self.Gibbs_BK.exp_W
+            # self.suff_stats["exp_logW"] = self.Gibbs_BK.exp_logW
 
 
     def gem(self):
@@ -180,17 +178,16 @@ class LogitNormalGEM(object):
             ## E-step: gibbs sampling and record suff stats
             self.estep_gibbs()
             ## update suff stats and calculate elbo
-            self.mle.update_suff_stats(self.suff_stats) ## update suff stats
+            self.mle.update_suff_stats(self.suff_stats)
             elbo = self.mle.compute_elbo()
             logging.info("\tE-step finished: elbo=%.6f", elbo)
 
             ## M-step
-            # logging.info("\tM-step started...")
             if self.hasSC:
                 self.mle.opt_kappa_tau()
                 self.pkappa = self.mle.pkappa
                 self.ptau = self.mle.ptau
-                logging.debug("\t\tptau = (%.f, %.f)", self.ptau[0], self.ptau[1])
+                # logging.debug("\t\tptau = (%.6f, %.6f)", self.ptau[0], self.ptau[1])
 
             if self.hasBK and self.est_alpha:
                 niter_alpha = self.mle.opt_alpha()
@@ -207,8 +204,6 @@ class LogitNormalGEM(object):
             old_elbo = elbo
             niter += 1
             path_elbo = np.append(path_elbo, [elbo])
-
-            # logging.info("%d-th EM iteration finished, ELBO=%.6f", niter, elbo)
         
         self.path_elbo = path_elbo
         return (niter, elbo, converged, path_elbo)

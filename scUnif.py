@@ -106,6 +106,7 @@ if __name__ == "__main__":
     # parser.add_argument("-anchor", "--anchor_gene_file", type=str, default=None)
     parser.add_argument("-K", "--number_of_cell_types", type=int, default=3)
     parser.add_argument("-iMarkers", "--iMarkers_file", type=str, default=None)
+
     parser.add_argument("-init_A", "--initial_A_file", type=str, default=None)
     parser.add_argument("-min_A", "--mininimal_A", type=float, default=1e-6)
     parser.add_argument("-init_alpha", "--initial_alpha_file", type=str, default=None)
@@ -116,15 +117,21 @@ if __name__ == "__main__":
                             action='store', default=None)
     parser.add_argument("-ptau", "--initial_tau_mean_var", nargs=2, type=float, 
                             action='store', default=None)
+
     parser.add_argument("-burnin", "--burn_in_length", type=int, default=200)
     parser.add_argument("-sample", "--gibbs_sample_number", type=int, default=200)
-    parser.add_argument("-burnin_bk", "--burn_in_length_bk", type=int, default=100)
-    parser.add_argument("-sample_bk", "--gibbs_sample_number_bk", type=int, default=1)
     parser.add_argument("-thin", "--gibbs_thinning", type=int, default=1)
+    parser.add_argument('-no_mean_approx', '--no_mean_approx', 
+                    dest='bk_mean_approx', action='store_false')
+    parser.add_argument('-mean_approx', '--mean_approx', 
+                    dest='bk_mean_approx', action='store_true')
+    parser.set_defaults(bk_mean_approx=True)
+
     parser.add_argument("-MLE_CONV", "--Mstep_convergence_tol", type=float, default=1e-6)
     parser.add_argument("-EM_CONV", "--EM_convergence_tol", type=float, default=1e-6)
     parser.add_argument("-MLE_maxiter", "--Mstep_maxiter", type=int, default=100)
     parser.add_argument("-EM_maxiter", "--EM_maxiter", type=int, default=100)
+
     parser.add_argument("-log", "--logging_file", type=str, default="gem_log.log")
     parser.add_argument("-outdir", "--output_directory", type=str, default="out/")
     parser.add_argument("-outname", "--output_prefix", type=str, default="gemout_")
@@ -173,10 +180,9 @@ if __name__ == "__main__":
     iMarkers = load_from_file(args.iMarkers_file, dtype=int)
     K = args.number_of_cell_types
 
-    # init_alpha = np.array([10]*K)
-    logging.debug("Estimate alpha: " + str(args.est_alpha))
+    logging.debug("Use mean approximation in bulk sampling: " + str(args.bk_mean_approx))
 
-    ## check input data are valid
+    ## check that input data are valid
     if SCexpr is None and BKexpr is None:
         logging.error("ERROR: Must provide at least one of single cell or bulk data.")
         sys.exit(1)
@@ -196,10 +202,6 @@ if __name__ == "__main__":
             logging.error("ERROR: Cell types in `%s` can only take values in {0, ..., K-1}.",
                 args.single_cell_type_file)
             sys.exit(1)
-        # elif len(set(G)) != K:
-        #     logging.error("ERROR: Cell types in `%s` must have K distinct values.",
-        #         args.single_cell_type_file)
-        #     sys.exit(1)
 
     if BKexpr is not None:
         logging.info("%d bulk samples on %d genes are loaded.", 
@@ -208,9 +210,10 @@ if __name__ == "__main__":
         logging.info("%d single cells on %d genes are loaded.\n", 
                         SCexpr.shape[0], SCexpr.shape[1])
 
-    # if i_anchors is not None and len(i_anchors)!=K:
-    #     logging.error("ERROR: number of lines in %s must be equal to K.", args.anchor_gene_file)
-    #     sys.exit(1)
+    if iMarkers is not None and np.max(iMarkers[:, 1]) > K:
+        logging.error("ERROR: cell types in `%s` can only take values in {0, ..., K-1}.",
+                        args.iMarkers_file)
+        sys.exit(1)
     
     ## perform GEM
     logging.info("Gibbs-EM started ...")
@@ -224,7 +227,7 @@ if __name__ == "__main__":
                   init_ptau=args.initial_tau_mean_var,
                   burnin=args.burn_in_length, sample=args.gibbs_sample_number, 
                   thin=args.gibbs_thinning, 
-                  burnin_bk=args.burn_in_length_bk, sample_bk=args.gibbs_sample_number_bk,
+                  bk_mean_approx = args.bk_mean_approx,
                   MLE_CONV=args.Mstep_convergence_tol, MLE_maxiter=args.Mstep_maxiter, 
                   EM_CONV=args.EM_convergence_tol, EM_maxiter=args.EM_maxiter)
     (niter, elbo, converged, path_elbo) = myGEM.gem()
