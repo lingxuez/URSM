@@ -74,7 +74,9 @@ def gem2csv(dirname, gem, prefix=""):
     if gem.hasSC:
         mtx2csv(prefix + 'exp_S.csv', gem.suff_stats['exp_S'])
         mtx2csv(prefix + 'est_pkappa.csv', gem.pkappa)
+        mtx2csv(prefix + 'est_kappa.csv', gem.suff_stats["exp_kappa"].transpose())
         mtx2csv(prefix + 'est_ptau.csv', gem.ptau)
+        mtx2csv(prefix + 'est_tau.csv', gem.suff_stats["exp_tau"].transpose())
     if gem.hasBK:
         mtx2csv(prefix + 'est_alpha.csv', gem.alpha)
         mtx2csv(prefix + 'exp_W.csv', gem.suff_stats['exp_W'])
@@ -117,8 +119,8 @@ if __name__ == "__main__":
     parser.add_argument("-ptau", "--initial_tau_mean_var", nargs=2, type=float, 
                             action='store', default=None)
 
-    parser.add_argument("-burnin", "--burn_in_length", type=int, default=200)
-    parser.add_argument("-sample", "--gibbs_sample_number", type=int, default=200)
+    parser.add_argument("-burnin", "--burn_in_length", type=int, default=50)
+    parser.add_argument("-sample", "--gibbs_sample_number", type=int, default=50)
     parser.add_argument("-thin", "--gibbs_thinning", type=int, default=1)
     parser.add_argument('-no_mean_approx', '--no_mean_approx', 
                     dest='bk_mean_approx', action='store_false')
@@ -128,13 +130,13 @@ if __name__ == "__main__":
 
     parser.add_argument("-MLE_CONV", "--Mstep_convergence_tol", type=float, default=1e-6)
     parser.add_argument("-EM_CONV", "--EM_convergence_tol", type=float, default=1e-6)
-    parser.add_argument("-MLE_maxiter", "--Mstep_maxiter", type=int, default=100)
-    parser.add_argument("-EM_maxiter", "--EM_maxiter", type=int, default=100)
+    parser.add_argument("-MLE_maxiter", "--Mstep_maxiter", type=int, default=500)
+    parser.add_argument("-EM_maxiter", "--EM_maxiter", type=int, default=50)
 
     parser.add_argument("-log", "--logging_file", type=str, default="gem_log.log")
     parser.add_argument("-outdir", "--output_directory", type=str, default="out/")
     parser.add_argument("-outname", "--output_prefix", type=str, default="gemout_")
-    parser.add_argument("-verbose", "--verbose_level", type=int, default=2)
+    parser.add_argument("-verbose", "--verbose_level", type=int, default=1)
     args = parser.parse_args()
 
     ## verbose level

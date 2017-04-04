@@ -35,7 +35,7 @@ plt.plot([-0.05, np.max(est_A)+0.05], [-0.05, np.max(est_A)+0.05], 'k-')
 plt.xlabel('true A')
 plt.ylabel('estimated A')
 plt.title('profile matrix')
-plt.savefig('estimation_A' + str(k) + '.png')
+plt.savefig('estimation_A.png')
 plt.close()
 
 ## scatter plot for eatimated W
@@ -44,11 +44,6 @@ plt.plot([-0.05, np.max(est_W)+0.05], [-0.05, np.max(est_W)+0.05], 'k-')
 plt.xlabel('true W')
 plt.ylabel('estimated W')
 plt.title('mixing proportions')
-plt.savefig('estimation_W' + str(k) + '.png')
+plt.savefig('estimation_W.png')
 plt.close()
 
-
-print "L1 loss A:",
-print np.sum(np.absolute(true_A.flatten() - est_A.flatten())) / K
-print "L1 loss W:",
-print np.sum(np.absolute(true_W.flatten() - est_W.transpose().flatten())) / K
