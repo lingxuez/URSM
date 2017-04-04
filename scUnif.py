@@ -69,13 +69,12 @@ import logging, json, sys, os, argparse, datetime, time
 def gem2csv(dirname, gem, prefix=""):
     prefix = dirname + "/" + prefix 
     mtx2csv(prefix + 'est_A.csv', gem.A)
-    mtx2csv(prefix + 'path_elbo.csv', gem.path_elbo)
+    # mtx2csv(prefix + 'path_elbo.csv', gem.path_elbo)
 
     if gem.hasSC:
         mtx2csv(prefix + 'exp_S.csv', gem.suff_stats['exp_S'])
         mtx2csv(prefix + 'est_pkappa.csv', gem.pkappa)
         mtx2csv(prefix + 'est_ptau.csv', gem.ptau)
-        mtx2csv(prefix + 'est_omega.csv', gem.Gibbs_SC.w)
     if gem.hasBK:
         mtx2csv(prefix + 'est_alpha.csv', gem.alpha)
         mtx2csv(prefix + 'exp_W.csv', gem.suff_stats['exp_W'])
@@ -180,7 +179,9 @@ if __name__ == "__main__":
     iMarkers = load_from_file(args.iMarkers_file, dtype=int)
     K = args.number_of_cell_types
 
-    logging.debug("Use mean approximation in bulk sampling: " + str(args.bk_mean_approx))
+    ## when K=1, init_A should still be a matrix instead of a vector
+    if init_A is not None and len(init_A.shape)==1:
+        init_A = init_A[:, np.newaxis]
 
     ## check that input data are valid
     if SCexpr is None and BKexpr is None:

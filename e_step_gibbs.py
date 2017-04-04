@@ -162,7 +162,7 @@ class LogitNormalGibbs_BK(object):
         self.AW = np.dot(self.A, self.W) ## N-by-M
         for k in range(self.K):
             multiplier = self.BKexpr * self.A[:, k].transpose() / self.AW.transpose()
-            self.W[k, :] = self.W[k, :] * multiplier.sum(axis=1) + self.alpha[k]   
+            self.W[k, :] = self.W[k, :] * multiplier.sum(axis=1) + self.alpha[k] - 1   
 
         ## re-normalize such that each column sums to 1
         self.W /= self.W.sum(axis=0)[np.newaxis, :]
@@ -294,7 +294,7 @@ class LogitNormalGibbs_SC(object):
         ## initialize sufficient statistics
         self.init_suffStats()   
         ## re-start gibbs chain
-        self.init_gibbs     
+        self.init_gibbs()    
         
         ## burnin
         for giter in xrange(burnin):
