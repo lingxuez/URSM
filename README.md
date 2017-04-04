@@ -54,21 +54,21 @@ python scUnif.py \
 	-outdir path/to/output/directory \
 	-log path/to/logging_file.log \
 	-burnin 50 \
-  -sample 50 \
+	-sample 50 \
 	-EM_maxiter 50
 ```
 
 **Basic Options**:
 * `K`: an integer, number of cell types.
 * `-sc`: path to the single cell RNA-seq `.csv` data, where each row is one cell and each column is one gene, without column or row names.
-see `demo/demo_data/demo_single_cell_rnaseq_counts.csv` for an example input. 
+See `demo/demo_data/demo_single_cell_rnaseq_counts.csv` for an example input. 
 If no single cell data is available, then leave out this option.
 * `-ctype`: path to the single cell type file, where each row contains a number among `{0, 1, ..., K-1}`, indicating the cell type. 
 Please note that cell types are 0-indexed. 
 No column or row names should be provided; the cell types should be consistent with the rows in the single cell RNA-seq file. 
 If no single cell data is available, then leave out this option.
 * `-bk`: path to the bulk RNA-seq `.csv` data, where each row is one bulk sample and each column is one gene, without column or row names.
-see `demo/demo_data/demo_bulk_rnaseq_counts.csv` for an example input.
+See `demo/demo_data/demo_bulk_rnaseq_counts.csv` for an example input.
 If no bulk data is available, then leave out this option.
 * `-outdir`: path to the output directory where the output `.csv` files will be saved. 
 * `-log`: path to the logging file. See `demo/demo_out/demo_logging.log` for an example of the logging file.
@@ -80,7 +80,7 @@ If no bulk data is available, then leave out this option.
 **Advanced Options**:
 more to come.
 
-**Output**:
+## Output
 The output will be saved under the specified directory by option `-outdir`. See `demo/demo_out/` for an example. This directory will always contain:
 * `gemout_est_A.csv`: the estimated profile matrix `A`, where each row is one gene and each column is one cell type.
 * `gemout_path_elbo.csv`: the ELBO after each EM iteration. Please note that ELBO sometimes can decrease because of the approximate inference.
@@ -100,10 +100,10 @@ If bulk data is provided, the directory will include the following files:
 
 
 ## R wrapper
-We also provide a simple `R` wrapper for the python script. In `R`, run
+We also provide a simple R wrapper for the python script. This wrapper calls the python script and passes in the parameters from R. The output will be stored under the directory specified by `out_dir` (see the previous section for more details of the output results). In R, run
 
 ```{r}
-source("scUnif_wrapper.R") ## change this to the path to this directory on your machine
+source("scUnif_wrapper.R") ## change this to the path to this file on your machine
 
 ## The function PyGEM() will call the python script from R
 arguments <- PyGEM(
@@ -121,14 +121,16 @@ arguments <- PyGEM(
                ## rows are samples and columns are genes; 
                ## NULL if no single cell data is available
   K=2, ## number of cell types 
-  G=NULL, ## a vector of 1-indexed cell types, e.g., c(1,1,2,2,2) for 5 cells from 2 types
+  G=NULL, ## a vector of cell types, 1-indexed (note: different from the python script). 
+          ## e.g., c(1,1,2,2,2) for 5 cells from 2 types.
+          ## NULL if no single cell data is available
 
   burnin=50, ## number of burnin period to use
   sample=50, ## number of Gibbs samples to use in each EM iteration
-  EM_maxiter=EM_maxiter ## number of maximal EM iterations
+  EM_maxiter=50 ## number of maximal EM iterations
 )
 
-## The returned `arguments` is a list containing all parameters used by the algorithm, 
+## The returned “arguments” is a list containing all parameters used by the algorithm, 
 ## including the following two:
 print(paste("Logging has been saved to", arguments$log))
 print(paste("Results have been saved under directory", arguments$outdir))
