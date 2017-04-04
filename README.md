@@ -33,12 +33,12 @@ pip install pypolyagamma
 
 ## Usage
 ### Demo
-A simple demo data is provided under `demo/`. Please run
+We provide a simple demo with 3 cell types, 50 single cells, 50 bulk samples, and 100 genes. Please run
 ```
 make demo
 ```
-and you will see the output on a simulated toy example. The input simulated data are under directory `demo/demo_data/`, 
-and the output is under directory `demo/demo_out/`. 
+The input simulated data is stored under directory `demo/demo_data/`, 
+and the output results are stored under directory `demo/demo_out/`. 
 This also generates two plots: `demo/estimation_A.png` and `demo/estimation_W.png`, 
 containing the estimated versus true profile matrix `A` and mixing proportions in bulk samples `W`, respectively.
 
@@ -81,17 +81,21 @@ If no bulk data is available, then leave out this option.
 more to come.
 
 **Output**:
-The output will be saved under the specified directory by option `-outdir`. See `demo/demo_out/` for an example. 
-The directory will include the folloing files:
+The output will be saved under the specified directory by option `-outdir`. See `demo/demo_out/` for an example. This directory will always contain:
 * `gemout_est_A.csv`: the estimated profile matrix `A`, where each row is one gene and each column is one cell type.
-* `gemout_exp_W.csv`: the posterior expectation of the mixing proportions in bulk samples, 
-where each column is one sample and each row is one cell type.
-* `gemout_exp_S.csv`: the posterior probability of observation in single cell data. Note that dropout porbability is `1-S`. 
-Each row is one cell and each column is one gene, consistent with the input single cell data.
-* `gemout_est_alpha.csv`: the estimated hyperparameter for mixing proportions in bulk samples.
-* `gemout_est_pkappa.csv`: the estimated Normal mean and variance for `kappa_l`.
-* `gemout_est_ptau.csv`: the estimated Normal mean and variance for `tau_l`.
 * `gemout_path_elbo.csv`: the ELBO after each EM iteration. Please note that ELBO sometimes can decrease because of the approximate inference.
+
+If single cell data is provided, the directory will include the following files:
+* `gemout_exp_S.csv`: the posterior probability of observation in single cell data. Note that dropout porbability is `1-S`. Each row is one cell and each column is one gene, consistent with the input single cell data.
+* `gemout_est_pkappa.csv`: the estimated Normal mean and variance for `kappa_l`.
+* `gemout_est_kappa.csv`: the posterior mean of `kappa_l` for each cell.
+* `gemout_est_ptau.csv`: the estimated Normal mean and variance for `tau_l`.
+* `gemout_est_tau.csv`: the posterior mean of `tau_l` for each cell.
+
+If bulk data is provided, the directory will include the following files:
+* `gemout_exp_W.csv`: the posterior expectation of the mixing proportions in bulk samples, where each column is one sample and each row is one cell type.
+* `gemout_est_alpha.csv`: the estimated hyperparameter for mixing proportions in bulk samples.
+
 
 
 
