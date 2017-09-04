@@ -40,5 +40,5 @@ clean:
 	@rm -f .DS_Store */.DS_Store */*/.DS_Store
 
 all.tar: clean
-	@tar -zcvf scGEM.tar makefile *.py *.R *.md demo/*
+	@tar -zcvf scUnif.tar makefile *.py *.R *.md demo/*
 

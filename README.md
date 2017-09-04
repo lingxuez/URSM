@@ -1,4 +1,4 @@
-# scGEM
+# scUnif
 A unified model for joint analysis of single cell and bulk RNA-seq data.
 This is a python implementation for
 > Zhu, Lei, Devlin and Roeder (2016), "A Unified Statistical Framework for Single Cell and Bulk RNA Sequencing Data", 
@@ -19,7 +19,7 @@ The code was developed under `Mac OS X` using `Python 2.7`. We hope this helps y
 ## Set Up
 Dependencies:
 * [Python 2.7](https://www.python.org/downloads/release/python-2713/)
-* [pypolyagamma](https://github.com/slinderman/pypolyagamma)
+* [pypolyagamma (1.1.1)](https://github.com/slinderman/pypolyagamma)
 
 It can be tricky to install `pypolyagamma`. I find it easier if you install [Cython](http://cython.org/) first, and *after then*, try 
 ```
