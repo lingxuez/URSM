@@ -1,5 +1,7 @@
-## 2016/07/21 Lingxue Zhu
 ## Helper functions
+##
+## Copyright Lingxue Zhu (lzhu@cmu.edu).
+## All Rights Reserved.
 
 import numpy as np
 

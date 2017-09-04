@@ -1,5 +1,8 @@
-## 2016/07/19 Lingxue Zhu
-## A class to perform M-step in LogitNormalGEM
+## A class to perform M-step
+##
+## Copyright Lingxue Zhu (lzhu@cmu.edu).
+## All Rights Reserved.
+
 import logging
 import numpy as np
 import scipy as scp

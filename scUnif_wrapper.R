@@ -1,14 +1,13 @@
-#############################
 ## Call python code from R
-#############################
+##
+## Copyright Lingxue Zhu (lzhu@cmu.edu).
+## All Rights Reserved.
 
-## Note: may need to set system path by 
+## Note:
+## If your python is installed under /usr/local/bin, 
+## you may need to update the system path first by 
 # Sys.setenv(PATH = paste("/usr/local/bin", Sys.getenv("PATH"),sep=":"))
 
-
-# ## current directory
-# script.dir <- dirname(parent.frame(2)$ofile)
-##"/Users/lingxue/Documents/Thesis/SingleCell/scUnif/"
 
 data_to_csv <- function(data, data_dir, file_prefix, varname) {
   res = list()
@@ -21,7 +20,10 @@ data_to_csv <- function(data, data_dir, file_prefix, varname) {
   return(res)
 }
 
-PyGEM <- function(py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/scUnif.py",
+PyGEM <- function(
+                  ## Change this to your local path
+                  py_script="/Users/lingxue/Documents/Thesis/SingleCell/scUnif/scUnif.py",
+                  
                   BKexpr=NULL, ## sample-by-gene
                   K=3, 
                   SCexpr=NULL, ## sample-by-gene

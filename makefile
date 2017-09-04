@@ -36,4 +36,9 @@ plot:
 
 
 clean:
-	@rm *.pyc
+	@rm -f *.pyc
+	@rm -f .DS_Store */.DS_Store */*/.DS_Store
+
+all.tar: clean
+	@tar -zcvf scGEM.tar makefile *.py *.R *.md demo/*
+

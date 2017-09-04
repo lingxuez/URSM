@@ -1,7 +1,7 @@
 ##
 ## Gibbs EM for modeling bulk and single cell RNA seq data
 ##
-## Copyright Lingxue Zhu (lzhu1@cmu.edu).
+## Copyright Lingxue Zhu (lzhu@cmu.edu).
 ## All Rights Reserved.
 ##
 ## #################

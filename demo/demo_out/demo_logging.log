@@ -1,6 +1,6 @@
 ################################################################################
 Gibbs-EM for 3 cell types.
-Date and time: 2017-04-04 00:10:43.390391
+Date and time: 2017-04-09 23:33:46.777633
 Algorithm arguments:
 	--gibbs_sample_number: 20
 	--EM_maxiter: 10
@@ -32,36 +32,36 @@ Loading data ...
 
 Gibbs-EM started ...
 1-th EM iteration started...
-	E-step finished: elbo=-12495.190317
-	M-step finished: elbo=-12376.210852
+	E-step finished: elbo=-12495.132032
+	M-step finished: elbo=-12375.674075
 2-th EM iteration started...
-	E-step finished: elbo=-12312.354848
-	M-step finished: elbo=-12310.386282
+	E-step finished: elbo=-12313.511023
+	M-step finished: elbo=-12312.000984
 3-th EM iteration started...
-	E-step finished: elbo=-12281.483421
-	M-step finished: elbo=-12280.793161
+	E-step finished: elbo=-12284.674412
+	M-step finished: elbo=-12283.991955
 4-th EM iteration started...
-	E-step finished: elbo=-12267.953774
-	M-step finished: elbo=-12267.221766
+	E-step finished: elbo=-12270.712238
+	M-step finished: elbo=-12269.942081
 5-th EM iteration started...
-	E-step finished: elbo=-12263.557386
-	M-step finished: elbo=-12263.066086
+	E-step finished: elbo=-12266.264098
+	M-step finished: elbo=-12265.778670
 6-th EM iteration started...
-	E-step finished: elbo=-12261.424009
-	M-step finished: elbo=-12260.988057
+	E-step finished: elbo=-12264.802725
+	M-step finished: elbo=-12264.333616
 7-th EM iteration started...
-	E-step finished: elbo=-12261.169422
-	M-step finished: elbo=-12260.826047
+	E-step finished: elbo=-12264.371225
+	M-step finished: elbo=-12264.022142
 8-th EM iteration started...
-	E-step finished: elbo=-12262.075041
-	M-step finished: elbo=-12261.737102
+	E-step finished: elbo=-12265.224660
+	M-step finished: elbo=-12264.906378
 9-th EM iteration started...
-	E-step finished: elbo=-12262.756759
-	M-step finished: elbo=-12262.477470
+	E-step finished: elbo=-12266.361012
+	M-step finished: elbo=-12266.082421
 10-th EM iteration started...
-	E-step finished: elbo=-12264.631216
-	M-step finished: elbo=-12264.361871
-Gibbs-EM finished in 23.90 seconds.
+	E-step finished: elbo=-12267.346120
+	M-step finished: elbo=-12267.132710
+Gibbs-EM finished in 24.59 seconds.
 
 Results are under directory demo/demo_out.
 Logging info is written to demo/demo_out/demo_logging.log.
