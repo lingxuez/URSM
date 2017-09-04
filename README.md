@@ -14,22 +14,27 @@ Pease cite our paper in your publication if it helps your research:
 }
 ```
 
+The code was developed under `Mac OS X` using `Python 2.7`. We hope this helps your research, but please note that this release has not been fully tested nor optimized at this point.
+
 ## Set Up
 Dependencies:
-* [Cython](http://cython.org/)
+* [Python 2.7](https://www.python.org/downloads/release/python-2713/)
 * [pypolyagamma](https://github.com/slinderman/pypolyagamma)
 
-We recommend to install `Cython` before trying to install `pypolyagamma`. In order to install `pypolyagamma`, try
+It can be tricky to install `pypolyagamma`. I find it easier if you install [Cython](http://cython.org/) first, and *after then*, try 
 ```
 pip install pypolyagamma
 ```
-If this does not work for you, you may want to try the following command 
-(you may need to change the paths according to the location of these files on your machine).
+If this still does not work for you, you may want to try the following command 
+(you will need to change these paths to the location of `gcc` on your machine):
 ```
 export CC=/usr/local/bin/gcc-5 CXX=/usr/local/bin/g++-5
 export DYLD_LIBRARY_PATH=/usr/local/Cellar/gcc/5.3.0/lib/gcc/5/
 pip install pypolyagamma
 ```
+
+In any case, please make sure that you can `import pypolyagamma` in Python without error before you proceed.
+
 
 ## Usage
 ### Demo
@@ -100,7 +105,10 @@ If bulk data is provided, the directory will include the following files:
 
 
 ## R wrapper
-We also provide a simple R wrapper for the python script. This wrapper calls the python script and passes in the parameters from R. The output will be stored under the directory specified by `out_dir` (see the previous section for more details of the output results). In R, run
+Usually we recommend to use the python script directly. 
+But if you really prefer to work in R, we provided a basic R wrapper `scUnif_wrapper.R`. This wrapper simply calls the python script and passes along the parameters from R. The output will be stored in files, under your specified directory. Please see the previous section for details of the output results. 
+
+Specifically, in R, run
 
 ```{r}
 source("scUnif_wrapper.R") ## change this to the path to this file on your machine
