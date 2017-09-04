@@ -154,13 +154,6 @@ class LogitNormalGibbs_BK(object):
                 pval = self.W[:, j]*self.A[i, :]
                 self.Z[j, i, :] = pval * self.BKexpr[j, i] /self.AW[i, j]
 
-    # def draw_W_mean(self):
-    #     """W: K x M, proportions"""
-    #     post_alpha = self.Z.sum(axis=1)
-    #     self.W = post_alpha.transpose() + self.alpha[:, np.newaxis]
-    #     self.W /= self.W.sum(axis=0)[np.newaxis, :]
-
-
     def get_nmf_W(self):
         self.AW = np.dot(self.A, self.W) ## N-by-M
         for k in range(self.K):

@@ -5,7 +5,6 @@
 
 import numpy as np
 
-## 
 def simplex_proj(y, min_y):
     """
     project a vector y onto the simplex, such that
@@ -39,28 +38,4 @@ def std_row(B):
     return np.true_divide(B, B.sum(axis=1)[:, np.newaxis])
 
 
-################
-## test
-################
-# import unittest
-
-# class test_util(unittest.TestCase):
-
-#   def test_simplex_proj(self):
-#       for itest in xrange(10):
-#           p = 10
-#           y = np.random.uniform(0, 1, p)
-#           min_y = min(min(y)/2.0, 1.0/p)
-#           proj_y = simplex_proj(y, min_y)
-#           self.assertAlmostEqual(sum(proj_y), 1.0)
-#           self.assertGreaterEqual(min(proj_y), min_y)
-
-#   def test_std_row(self):
-#       (row, col) = (20, 10)
-#       B = np.reshape(np.random.uniform(size=row*col), [row, col])
-#       stdB = std_row(B)
-#       np.testing.assert_almost_equal(stdB.sum(axis=1), np.ones(row))
-
-
-# unittest.main()
 

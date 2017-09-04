@@ -142,25 +142,11 @@ class LogitNormalGEM(object):
                 thin=self.thin)
             self.suff_stats.update(self.Gibbs_SC.suff_stats)
 
-            # self.suff_stats["exp_S"] = self.Gibbs_SC.exp_S
-            # self.suff_stats["exp_kappa"] = self.Gibbs_SC.exp_kappa
-            # self.suff_stats["exp_tau"] = self.Gibbs_SC.exp_tau
-            # self.suff_stats["exp_kappasq"] = self.Gibbs_SC.exp_kappasq
-            # self.suff_stats["exp_tausq"] = self.Gibbs_SC.exp_tausq
-            # self.suff_stats["coeffA"] = self.Gibbs_SC.coeffA
-            # self.suff_stats["coeffAsq"] = self.Gibbs_SC.coeffAsq
-            # self.suff_stats["sc_exp_elbo_const"] = self.Gibbs_SC.exp_elbo_const
-
         if self.hasBK:
             self.Gibbs_BK.update_parameters(self.A, self.alpha)
             self.Gibbs_BK.gibbs(burnin=self.burnin, sample=self.sample,
                 thin=self.thin, mean_approx=self.bk_mean_approx)
             self.suff_stats.update(self.Gibbs_BK.suff_stats)
-
-            # self.suff_stats["exp_Zik"] = self.Gibbs_BK.exp_Zik
-            # self.suff_stats["exp_Zjk"] = self.Gibbs_BK.exp_Zjk
-            # self.suff_stats["exp_W"] = self.Gibbs_BK.exp_W
-            # self.suff_stats["exp_logW"] = self.Gibbs_BK.exp_logW
 
 
     def gem(self):
