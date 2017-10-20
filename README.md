@@ -1,16 +1,16 @@
-# scUnif
-A unified model for joint analysis of single cell and bulk RNA-seq data.
+# URSM
+A Unified RNA Sequencing Model (URSM) for joint analysis of single cell and bulk RNA-seq data.
 This is a python implementation for
-> Zhu, Lei, Devlin and Roeder (2016), "A Unified Statistical Framework for Single Cell and Bulk RNA Sequencing Data", 
-[arXiv:1609.08028](https://arxiv.org/abs/1609.08028).
+> Zhu, Lei, Devlin and Roeder (2017), "A Unified Statistical Framework for Single Cell and Bulk RNA Sequencing Data", Annals of Applied Statistics (to appear). 
+[[pdf](https://arxiv.org/pdf/1609.08028.pdf)]
 
 Pease cite our paper in your publication if it helps your research:
 ```
 @article{zhu2016a,
     title={A Unified Statistical Framework for Single Cell and Bulk RNA Sequencing Data},
     author={Zhu, Lingxue and Lei, Jing and Devlin, Bernie and Roeder, Kathryn},
-    journal={arXiv preprint arXiv:1609.08028},
-    year={2016}
+    journal={Annals of Applied Statistics},
+    year={2017}
 }
 ```
 
